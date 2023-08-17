@@ -12,7 +12,7 @@ import (
 func main() {
 	slog := logger.SLogger("hander")
 	parse.SetLogger(slog)
-	parse.InitRedis()
+	parse.InitRedis("", "", "", 0)
 	defer func() { parse.StopRedis() }()
 	//msg := spanMessage()
 	//msg, _ := hex.DecodeString(des)

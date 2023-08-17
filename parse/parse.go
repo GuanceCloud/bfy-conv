@@ -12,7 +12,7 @@ import (
 )
 
 var log *logger.Logger
-var headerKey = "x-b3-traceid"
+var HeaderKey = "x-b3-traceid"
 
 func SetLogger(slog *logger.Logger) {
 	log = slog
@@ -44,7 +44,7 @@ func Handle(message []byte) (pts []*point.Point) {
 		xID := xid(tSpan.TransactionId, tSpan.AppId, tSpan.AgentId)
 		tid := getTidFromRedis(xID)
 		if tid == "" {
-			tid = getTidFromHeader(tSpan.GetHttpRequestHeader(), headerKey, xID)
+			tid = getTidFromHeader(tSpan.GetHttpRequestHeader(), HeaderKey, xID)
 		}
 
 		if tid == "" {
