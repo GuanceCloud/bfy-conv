@@ -7,7 +7,9 @@
 *.dll
 *.so
 *.dylib
-
+.idea/
+docs
+bfy-conv
 # Test binary, built with `go test -c`
 *.test
 
