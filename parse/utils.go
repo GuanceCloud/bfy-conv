@@ -142,5 +142,5 @@ func sourceType(serviceType int16) string {
 
 func GetRandomWithAll() int64 {
 	rand.Seed(time.Now().UnixNano())
-	return int64(rand.Intn(math.MaxInt64))
+	return int64(rand.Intn(math.MaxInt))
 }
