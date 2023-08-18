@@ -168,7 +168,7 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	pt.AddTag([]byte("operation"), []byte(resource))
 	pt.AddTag([]byte("apiinfo"), []byte(event.ApiInfo))
 	jsonBody, err := json.Marshal(event)
-	if err != nil {
+	if err == nil {
 		pt.Add([]byte("message"), string(jsonBody))
 	}
 	return pt
@@ -217,7 +217,7 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 	pt.AddTag([]byte("source"), []byte("byf-kafka"))
 	pt.AddTag([]byte("service_type"), []byte("byf-tspanchunk"))
 	jsonBody, err := json.Marshal(tSpanChunk)
-	if err != nil {
+	if err == nil {
 		pt.Add([]byte("message"), string(jsonBody))
 	}
 	pts = append(pts, pt)

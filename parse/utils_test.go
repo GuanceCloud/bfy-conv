@@ -2,6 +2,8 @@ package parse
 
 import (
 	"fmt"
+	"github.com/GuanceCloud/bfy-conv/mock"
+	"github.com/IBM/sarama"
 	"strings"
 	"testing"
 )
@@ -54,4 +56,37 @@ func TestXid(t *testing.T) {
 	sequence := splitResult[3]
 
 	t.Logf("appID = %s , right is tyjygl-pt-uap \n timestamp =%s right is 1679640378492 \n agentID=%s right is mesos-b9978739-070d-4056-83e5-a27c49d69e86 \n sequence=%s right is 14309167", appID, timestamp, agentID, sequence)
+}
+
+func TestSendToKafka(t *testing.T) {
+	buf := mock.GetKafkaSpanByte()
+	// Set up Kafka connection.
+	topic := "spans"
+	// topic := "skywalking-meters" // skywalking-metrics skywalking-segments skywalking-profilings skywalking-managements skywalking-logging
+	//topic := "skywalking-logging" //
+	brokerAddr := []string{"10.200.14.226:9092"}
+
+	config := sarama.NewConfig()
+	config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Producer.Retry.Max = 5
+	config.Producer.Return.Successes = true
+
+	producer, err := sarama.NewSyncProducer(brokerAddr, config)
+	if err != nil {
+		t.Fatalf("Failed to create Kafka producer: %v", err)
+	}
+	defer producer.Close()
+
+	// Send message to Kafka.
+	msg := &sarama.ProducerMessage{
+		Topic: topic,
+		Value: sarama.ByteEncoder(buf),
+	}
+
+	partition, offset, err := producer.SendMessage(msg)
+	if err != nil {
+		t.Fatalf("Failed to send message to Kafka: %v", err)
+	}
+
+	fmt.Printf("Message sent successfully. Partition: %d, Offset: %d\n", partition, offset)
 }
