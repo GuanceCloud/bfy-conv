@@ -85,10 +85,22 @@ func parseTSpan(buf []byte) (*span.TSpan, error) {
 }
 
 func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point {
-	// getTraceID()
 	pts := make([]*point.Point, 0)
+	for _, event := range tSpan.SpanEventList {
+		eventPt := ptdecodeEvent(event)
+		// eventPt.AddTag()
+		eventPt.Add([]byte("trace_id"), traceid)
+		eventPt.Add([]byte("parent_id"), strconv.FormatInt(tSpan.SpanId, 10))
+		eventPt.Add([]byte("start"), (tSpan.AgentStartTime+int64(event.StartElapsed))*1e6)
+		eventPt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
+		eventPt.AddTag([]byte("transactionId"), []byte(xid))
+		eventPt.SetTime(time.UnixMilli(tSpan.StartTime + int64(event.StartElapsed)))
+
+		pts = append(pts, eventPt)
+	}
+
 	pt := &point.Point{}
-	pt.SetName("opentelemetry")
+	pt.SetName("kafka-bfy")
 	pt.Add([]byte("span_id"), strconv.FormatInt(tSpan.SpanId, 10))
 	pt.Add([]byte("trace_id"), traceid)
 	pid := tSpan.ParentSpanId
@@ -116,29 +128,22 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 	pt.AddTag([]byte("span_type"), []byte("entry"))
 	pt.AddTag([]byte("source"), []byte("byf-kafka"))
 	pt.AddTag([]byte("service_type"), []byte("byf-tspan"))
-	pt.SetTime(time.Now())
+
+	pt.SetTime(time.UnixMilli(tSpan.StartTime))
+	pt.AddTag([]byte("event_count"), []byte(strconv.Itoa(len(tSpan.SpanEventList))))
+	tSpan.SpanEventList = make([]*span.TSpanEvent, 0) // 防止重复数据太多
 	jsonBody, err := json.Marshal(tSpan)
 	if err == nil {
 		pt.Add([]byte("message"), string(jsonBody))
 	}
 	pts = append(pts, pt)
-	for _, event := range tSpan.SpanEventList {
-		eventPt := ptdecodeEvent(event)
-		// eventPt.AddTag()
-		eventPt.Add([]byte("trace_id"), traceid)
-		eventPt.Add([]byte("parent_id"), strconv.FormatInt(tSpan.SpanId, 10))
-		eventPt.Add([]byte("start"), (tSpan.AgentStartTime+int64(event.StartElapsed))*1e6)
-		eventPt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
-		eventPt.AddTag([]byte("transactionId"), []byte(xid))
-		pt.SetTime(time.Now())
-		pts = append(pts, eventPt)
-	}
+
 	return pts
 }
 
 func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	pt := &point.Point{}
-	pt.SetName("opentelemetry")
+	pt.SetName("kafka-bfy")
 	pt.Add([]byte("span_id"), strconv.FormatInt(GetRandomWithAll(), 10))
 	d := (event.StartElapsed + event.EndElapsed) * 1e6
 	if d < 0 {
@@ -195,7 +200,7 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 		return
 	}
 	pt := &point.Point{}
-	pt.SetName("opentelemetry")
+	pt.SetName("kafka-bfy")
 	pt.Add([]byte("span_id"), strconv.FormatInt(tSpanChunk.SpanId, 10))
 	pt.Add([]byte("trace_id"), traceID)
 
@@ -220,6 +225,12 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 	if err == nil {
 		pt.Add([]byte("message"), string(jsonBody))
 	}
+	if tSpanChunk.StartTime != nil {
+		pt.SetTime(time.UnixMilli(*tSpanChunk.StartTime))
+	} else {
+		pt.SetTime(time.Now())
+	}
+
 	pts = append(pts, pt)
 	for _, event := range tSpanChunk.SpanEventList {
 		eventPt := ptdecodeEvent(event)
