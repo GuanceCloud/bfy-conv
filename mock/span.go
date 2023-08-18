@@ -21,7 +21,7 @@ func GetKafkaSpanByte() []byte {
 	mill := time.Now().UnixMilli()
 	span := &span.TSpan{
 		AgentId:                "xytb-uw-pt-7d876c8d-7vjg6",
-		ApplicationName:        "urus-uw-pt",
+		ApplicationName:        "urus-uw-pt-1",
 		AgentStartTime:         mill,
 		TransactionId:          getTranID(),
 		Appkey:                 "e246fc1cfb4c428eb744a76cf996d10c",

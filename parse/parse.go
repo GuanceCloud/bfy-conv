@@ -118,7 +118,7 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 	pt.AddTag([]byte("service_type"), []byte("byf-tspan"))
 	pt.SetTime(time.Now())
 	jsonBody, err := json.Marshal(tSpan)
-	if err != nil {
+	if err == nil {
 		pt.Add([]byte("message"), string(jsonBody))
 	}
 	pts = append(pts, pt)
