@@ -56,7 +56,7 @@ func Handle(message []byte) (pts []*point.Point) {
 		tSpanChunk, err := parseTSpanChunk(message[4:])
 		if err != nil {
 			log.Warnf("parse tSpan err=%v", err)
-			return pts
+			//	return pts
 		}
 		xID := xid(tSpanChunk.TransactionId, tSpanChunk.AppId, tSpanChunk.AgentId)
 		tid := getTidFromRedis(xID)
@@ -124,7 +124,7 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 	}
 	pt.Add([]byte("parent_id"), strconv.FormatInt(pid, 10))
 	pt.Add([]byte("start"), tSpan.StartTime*1e6)
-	pt.Add([]byte("duration"), tSpan.Elapsed*1e6)
+	pt.Add([]byte("duration"), tSpan.Elapsed)
 	pt.Add([]byte("resource"), *tSpan.RPC)
 
 	pt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
@@ -160,7 +160,7 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	pt := &point.Point{}
 	pt.SetName("kafka-bfy")
 	pt.Add([]byte("span_id"), strconv.FormatInt(GetRandomWithAll(), 10))
-	d := (event.StartElapsed + event.EndElapsed) * 1e6
+	d := event.StartElapsed + event.EndElapsed
 	if d < 0 {
 		d = 1000000
 	}
@@ -235,13 +235,19 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 	pt.Add([]byte("trace_id"), traceID)
 
 	pt.Add([]byte("parent_id"), "0")
-	pt.Add([]byte("start"), *tSpanChunk.StartTime*1e6)
+	if tSpanChunk.StartTime != nil {
+		pt.Add([]byte("start"), *tSpanChunk.StartTime*1e6)
+	}
+
 	pt.Add([]byte("duration"), 1000)
-	pt.Add([]byte("resource"), *tSpanChunk.EndPoint)
+	if tSpanChunk.EndPoint != nil {
+		pt.Add([]byte("resource"), *tSpanChunk.EndPoint)
+		pt.AddTag([]byte("operation"), []byte(*tSpanChunk.EndPoint))
+	}
 
 	pt.AddTag([]byte("service"), []byte(tSpanChunk.ApplicationName))
 	pt.AddTag([]byte("service_name"), []byte(serviceName(tSpanChunk.ServiceType)))
-	pt.AddTag([]byte("operation"), []byte(*tSpanChunk.EndPoint))
+
 	pt.AddTag([]byte("source_type"), []byte(sourceType(tSpanChunk.ServiceType)))
 	pt.AddTag([]byte("transactionId"), []byte(transactionID))
 	pt.AddTag([]byte("original_type"), []byte("Span"))
