@@ -106,7 +106,7 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 		// eventPt.AddTag()
 		eventPt.Add([]byte("trace_id"), traceid)
 		eventPt.Add([]byte("parent_id"), strconv.FormatInt(tSpan.SpanId, 10))
-		eventPt.Add([]byte("start"), (tSpan.AgentStartTime+int64(event.StartElapsed))*1e6)
+		eventPt.Add([]byte("start"), tSpan.AgentStartTime+int64(event.StartElapsed))
 		eventPt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
 		eventPt.AddTag([]byte("transactionId"), []byte(xid))
 		eventPt.SetTime(time.UnixMilli(tSpan.StartTime + int64(event.StartElapsed)))
@@ -123,7 +123,7 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 		pid = 0
 	}
 	pt.Add([]byte("parent_id"), strconv.FormatInt(pid, 10))
-	pt.Add([]byte("start"), tSpan.StartTime*1e6)
+	pt.Add([]byte("start"), tSpan.StartTime)
 	pt.Add([]byte("duration"), tSpan.Elapsed)
 	pt.Add([]byte("resource"), *tSpan.RPC)
 
@@ -236,7 +236,7 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 
 	pt.Add([]byte("parent_id"), "0")
 	if tSpanChunk.StartTime != nil {
-		pt.Add([]byte("start"), *tSpanChunk.StartTime*1e6)
+		pt.Add([]byte("start"), *tSpanChunk.StartTime)
 	}
 
 	pt.Add([]byte("duration"), 1000)
@@ -273,7 +273,7 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 		// eventPt.AddTag()
 		eventPt.Add([]byte("trace_id"), traceID)
 		eventPt.Add([]byte("parent_id"), strconv.FormatInt(tSpanChunk.SpanId, 10))
-		eventPt.Add([]byte("start"), (tSpanChunk.AgentStartTime+int64(event.StartElapsed))*1e6)
+		eventPt.Add([]byte("start"), tSpanChunk.AgentStartTime+int64(event.StartElapsed))
 		eventPt.AddTag([]byte("service"), []byte(tSpanChunk.ApplicationName))
 		eventPt.AddTag([]byte("transactionId"), []byte(transactionID))
 		pts = append(pts, eventPt)
