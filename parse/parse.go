@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"github.com/GuanceCloud/bfy-conv/gen-go/span"
@@ -36,7 +37,7 @@ func Handle(message []byte) (pts []*point.Point) {
 		tSpan, err := parseTSpan(message[4:])
 		if err != nil {
 			log.Warnf("parse tSpan err=%v", err)
-			return
+			// 不返回错误，因为tspan 不一定为空
 		}
 		log.Debugf("tspan=%v", tSpan)
 		log.Debugf("TransactionId=%s  AppId=%s  AgentId=%s", tSpan.TransactionId, tSpan.AppId, tSpan.AgentId)
@@ -73,7 +74,21 @@ func Handle(message []byte) (pts []*point.Point) {
 }
 
 func parseTSpan(buf []byte) (*span.TSpan, error) {
-	deserializer := thrift.NewTDeserializer()
+	transport := &thrift.TMemoryBuffer{
+		Buffer: bytes.NewBuffer(buf),
+	}
+	strict := false
+	protocol := thrift.NewTCompactProtocolConf(transport, &thrift.TConfiguration{
+		MaxMessageSize:     1024 * 20,
+		MaxFrameSize:       0,
+		TBinaryStrictRead:  &strict,
+		TBinaryStrictWrite: &strict,
+	})
+	tSpan := span.NewTSpan()
+	ctx := context.Background()
+	err := tSpan.Read(ctx, protocol)
+	return tSpan, err
+	/*deserializer := thrift.NewTDeserializer()
 	tSpan := span.NewTSpan()
 	ctx := context.Background()
 	if err := deserializer.Read(ctx, tSpan, buf); err != nil {
@@ -81,7 +96,7 @@ func parseTSpan(buf []byte) (*span.TSpan, error) {
 		return nil, err
 	} else {
 		return tSpan, err
-	}
+	}*/
 }
 
 func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point {
@@ -180,15 +195,30 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 }
 
 func parseTSpanChunk(buf []byte) (*span.TSpanChunk, error) {
-	deserializer := thrift.NewTDeserializer()
+	transport := &thrift.TMemoryBuffer{
+		Buffer: bytes.NewBuffer(buf),
+	}
+	strict := false
+	protocol := thrift.NewTCompactProtocolConf(transport, &thrift.TConfiguration{
+		MaxMessageSize:     1024 * 20,
+		MaxFrameSize:       0,
+		TBinaryStrictRead:  &strict,
+		TBinaryStrictWrite: &strict,
+	})
 	tSpanChunk := span.NewTSpanChunk()
 	ctx := context.Background()
-	if err := deserializer.Read(ctx, tSpanChunk, buf); err != nil {
-		log.Errorf("deserializer TSpanChunk err=%v", err)
-		return nil, err
-	} else {
-		return tSpanChunk, err
-	}
+	err := tSpanChunk.Read(ctx, protocol)
+	return tSpanChunk, err
+
+	/*	deserializer := thrift.NewTDeserializer()
+		tSpanChunk := span.NewTSpanChunk()
+		ctx := context.Background()
+		if err := deserializer.Read(ctx, tSpanChunk, buf); err != nil {
+			log.Errorf("deserializer TSpanChunk err=%v", err)
+			return nil, err
+		} else {
+			return tSpanChunk, err
+		}*/
 }
 
 func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionID string) (pts []*point.Point) {

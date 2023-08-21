@@ -60,6 +60,7 @@ func TestXid(t *testing.T) {
 
 func TestSendToKafka(t *testing.T) {
 	buf := mock.GetKafkaSpanByte()
+	//buf := mock.GetAppSpan()
 	// Set up Kafka connection.
 	topic := "spans"
 	// topic := "skywalking-meters" // skywalking-metrics skywalking-segments skywalking-profilings skywalking-managements skywalking-logging
