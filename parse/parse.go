@@ -19,14 +19,6 @@ func SetLogger(slog *logger.Logger) {
 	log = slog
 }
 
-/*
-spanchunk 和span 关联关系是 spanid
-
-start time 毫秒
-agentStart  没意义
-
-*/
-
 // Handle : message to points.
 func Handle(message []byte) (pts []*point.Point) {
 	// 判断类型
@@ -83,97 +75,16 @@ func Handle(message []byte) (pts []*point.Point) {
 	return pts
 }
 
-func parseTSpan(buf []byte) (*span.TSpan, error) {
-	transport := &thrift.TMemoryBuffer{
-		Buffer: bytes.NewBuffer(buf),
-	}
-	strict := false
-	protocol := thrift.NewTCompactProtocolConf(transport, &thrift.TConfiguration{
-		MaxMessageSize:     1024 * 20,
-		MaxFrameSize:       0,
-		TBinaryStrictRead:  &strict,
-		TBinaryStrictWrite: &strict,
-	})
-	tSpan := span.NewTSpan()
-	ctx := context.Background()
-	err := tSpan.Read(ctx, protocol)
-	return tSpan, err
-	/*deserializer := thrift.NewTDeserializer()
-	tSpan := span.NewTSpan()
-	ctx := context.Background()
-	if err := deserializer.Read(ctx, tSpan, buf); err != nil {
-		log.Errorf("deserializer tSpan err=%v", err)
-		return nil, err
-	} else {
-		return tSpan, err
-	}*/
-}
-
-func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point {
-	pts := make([]*point.Point, 0)
-	for _, event := range tSpan.SpanEventList {
-		eventPt := ptdecodeEvent(event)
-		if eventPt == nil {
-			continue
-		}
-		// eventPt.AddTag()
-		eventPt.Add([]byte("trace_id"), traceid)
-		eventPt.Add([]byte("parent_id"), strconv.FormatInt(tSpan.SpanId, 10))
-		eventPt.Add([]byte("start"), (tSpan.StartTime+int64(event.StartElapsed))*1e3)
-		eventPt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
-		eventPt.AddTag([]byte("transactionId"), []byte(xid))
-		eventPt.SetTime(time.UnixMilli(tSpan.StartTime + int64(event.StartElapsed)))
-
-		pts = append(pts, eventPt)
-	}
-
-	pt := &point.Point{}
-	pt.SetName("kafka-bfy")
-	pt.Add([]byte("span_id"), strconv.FormatInt(tSpan.SpanId, 10))
-	pt.Add([]byte("trace_id"), traceid)
-	pid := tSpan.ParentSpanId
-	if pid < 0 {
-		pid = 0
-	}
-	pt.Add([]byte("parent_id"), strconv.FormatInt(pid, 10))
-	pt.Add([]byte("start"), tSpan.StartTime*1e3)
-	pt.Add([]byte("duration"), tSpan.Elapsed*1e3)
-	pt.Add([]byte("resource"), *tSpan.RPC)
-
-	pt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
-	pt.AddTag([]byte("service_name"), []byte(serviceName(tSpan.ServiceType)))
-	pt.AddTag([]byte("operation"), []byte(*tSpan.RPC))
-	pt.AddTag([]byte("source_type"), []byte(sourceType(tSpan.ServiceType)))
-	pt.AddTag([]byte("transactionId"), []byte(xid))
-	pt.AddTag([]byte("original_type"), []byte("Span"))
-	if tSpan.ExceptionInfo != nil && tSpan.Err != nil && *tSpan.Err != 0 {
-		pt.AddTag([]byte("status"), []byte("error"))
-		pt.Add([]byte("exception"), *tSpan.ExceptionInfo)
-	} else {
-		pt.AddTag([]byte("status"), []byte("ok"))
-	}
-
-	pt.AddTag([]byte("span_type"), []byte("entry"))
-	pt.AddTag([]byte("source"), []byte("byf-kafka"))
-	pt.AddTag([]byte("service_type"), []byte("byf-tspan"))
-
-	pt.SetTime(time.UnixMilli(tSpan.StartTime))
-	pt.AddTag([]byte("event_count"), []byte(strconv.Itoa(len(tSpan.SpanEventList))))
-	tSpan.SpanEventList = make([]*span.TSpanEvent, 0) // 防止重复数据太多
-	jsonBody, err := json.Marshal(tSpan)
-	if err == nil {
-		pt.Add([]byte("message"), string(jsonBody))
-	}
-	pts = append(pts, pt)
-
-	return pts
-}
-
 func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	pt := &point.Point{}
 	pt.SetName("kafka-bfy")
-	pt.Add([]byte("span_id"), strconv.FormatInt(GetRandomWithAll(), 10))
-	d := (event.StartElapsed + event.EndElapsed) * 1e3
+	if event.SpanId != nil {
+		pt.Add([]byte("span_id"), strconv.FormatInt(*event.SpanId, 10))
+	} else {
+		pt.Add([]byte("span_id"), strconv.FormatInt(GetRandomWithAll(), 10))
+	}
+
+	d := (event.StartElapsed + event.EndElapsed) * 1e3 // 不乘
 	if d < 0 {
 		d = 1000
 	}
@@ -241,16 +152,6 @@ func parseTSpanChunk(buf []byte) (*span.TSpanChunk, error) {
 	ctx := context.Background()
 	err := tSpanChunk.Read(ctx, protocol)
 	return tSpanChunk, err
-
-	/*	deserializer := thrift.NewTDeserializer()
-		tSpanChunk := span.NewTSpanChunk()
-		ctx := context.Background()
-		if err := deserializer.Read(ctx, tSpanChunk, buf); err != nil {
-			log.Errorf("deserializer TSpanChunk err=%v", err)
-			return nil, err
-		} else {
-			return tSpanChunk, err
-		}*/
 }
 
 func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionID string) (pts []*point.Point) {
@@ -303,8 +204,9 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 	startTime := time.Now().UnixMicro()
 	if tSpanChunk.StartTime != nil {
 		//pt.SetTime(time.UnixMilli(*tSpanChunk.StartTime))
-		log.Warnf("tspanchunk starttime is null")
 		startTime = *tSpanChunk.StartTime * 1e3
+	} else {
+		log.Warnf("tspanchunk starttime is null")
 	}
 
 	for _, event := range tSpanChunk.SpanEventList {
