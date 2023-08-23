@@ -39,6 +39,9 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 		eventPt.Add([]byte("trace_id"), traceid)
 		eventPt.Add([]byte("parent_id"), strconv.FormatInt(tSpan.SpanId, 10))
 		eventPt.Add([]byte("start"), (tSpan.StartTime+int64(event.StartElapsed))*1e3)
+		if eventPt.GetTag([]byte("service")) == nil {
+			eventPt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
+		}
 		//	eventPt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
 		eventPt.AddTag([]byte("transactionId"), []byte(xid))
 		eventPt.SetTime(time.UnixMilli(tSpan.StartTime + int64(event.StartElapsed)))
@@ -80,10 +83,9 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 		pt.AddTag([]byte("http_request_tid"), []byte(*tSpan.HttpRequestTID))
 	}
 	if tSpan.IsSetRetcode() {
-		pt.AddTag([]byte("ret_code"), []byte(strconv.Itoa(int(*tSpan.Retcode))))
+		pt.AddTag([]byte("http_status_code"), []byte(strconv.Itoa(int(*tSpan.Retcode))))
 	}
 	pt.AddTag([]byte("span_type"), []byte("entry"))
-	pt.AddTag([]byte("source"), []byte("byf-kafka"))
 	pt.AddTag([]byte("service_type"), []byte("bfy-tspan"))
 
 	pt.SetTime(time.UnixMilli(tSpan.StartTime))

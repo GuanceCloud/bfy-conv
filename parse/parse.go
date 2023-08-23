@@ -9,6 +9,7 @@ import (
 	"github.com/GuanceCloud/cliutils/point"
 	"github.com/apache/thrift/lib/go/thrift"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -94,34 +95,35 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 		resource = st.Name
 		switch {
 		case st.IsQueue:
-			pt.AddTag([]byte("source_type"), []byte("db"))
+			pt.AddTag([]byte("source_type"), []byte("message_queue"))
 		case st.IsIncludeDestinationID == 1:
 			pt.AddTag([]byte("source_type"), []byte("db"))
 		case st.IsRecordStatistics == 1:
-			pt.AddTag([]byte("source_type"), []byte("record"))
+			pt.AddTag([]byte("source_type"), []byte("custom"))
 		case st.IsInternalMethod == 1:
-			pt.AddTag([]byte("source_type"), []byte("Internal"))
-			if event.IsSetURL() {
-				pt.AddTag([]byte("url"), []byte(*event.URL))
-			}
+			pt.AddTag([]byte("source_type"), []byte("custom"))
 		case st.IsRpcClient == 1:
-			if event.IsSetRPC() {
-				pt.AddTag([]byte("rpc"), []byte(*event.RPC))
-			}
+			pt.AddTag([]byte("source_type"), []byte("http"))
 		case st.IsTerminal == 1:
-			pt.AddTag([]byte("source_type"), []byte("Terminal"))
+			pt.AddTag([]byte("service"), []byte(strings.ToLower(st.TypeDesc)))
+			pt.AddTag([]byte("source_type"), []byte("db"))
 		case st.IsUser == 1:
-			pt.AddTag([]byte("source_type"), []byte("user"))
-
+			pt.AddTag([]byte("source_type"), []byte("custom"))
 		case st.IsUnknown == 1:
 			pt.AddTag([]byte("source_type"), []byte("unknown"))
 		default:
-			pt.AddTag([]byte("source_type"), []byte("unknown"))
+			//	pt.AddTag([]byte("source_type"), []byte("unknown"))
 		}
 
-		pt.AddTag([]byte("service"), []byte(st.TypeDesc))
 	} else {
 		return nil
+	}
+
+	if event.IsSetRPC() {
+		pt.AddTag([]byte("rpc"), []byte(*event.RPC))
+	}
+	if event.IsSetURL() {
+		pt.AddTag([]byte("url"), []byte(*event.URL))
 	}
 	if event.IsSetSql() {
 		pt.AddTag([]byte("db.host"), []byte(event.Sql.Dbhost))
@@ -170,45 +172,6 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 	if tSpanChunk.SpanEventList == nil || len(tSpanChunk.SpanEventList) == 0 {
 		return
 	}
-	/*	pt := &point.Point{}
-		pt.SetName("kafka-bfy")
-		pt.Add([]byte("span_id"), strconv.FormatInt(tSpanChunk.SpanId, 10))
-		pt.Add([]byte("trace_id"), traceID)
-
-		pt.Add([]byte("parent_id"), "0")
-		if tSpanChunk.StartTime != nil {
-			pt.Add([]byte("start"), *tSpanChunk.StartTime)
-		}
-		//if tSpanChunk.AgentStartTime != 0 {
-		//	pt.Add([]byte("start"), tSpanChunk.AgentStartTime)
-		//}
-
-		pt.Add([]byte("duration"), 1000)
-		if tSpanChunk.EndPoint != nil {
-			pt.Add([]byte("resource"), *tSpanChunk.EndPoint)
-			pt.AddTag([]byte("operation"), []byte(*tSpanChunk.EndPoint))
-		}
-
-		pt.AddTag([]byte("service"), []byte(tSpanChunk.ApplicationName))
-		pt.AddTag([]byte("service_name"), []byte(serviceName(tSpanChunk.ServiceType)))
-
-		pt.AddTag([]byte("source_type"), []byte(sourceType(tSpanChunk.ServiceType)))
-		pt.AddTag([]byte("transactionId"), []byte(transactionID))
-		pt.AddTag([]byte("original_type"), []byte("Span"))
-
-		pt.AddTag([]byte("status"), []byte("ok"))
-
-		pt.AddTag([]byte("span_type"), []byte("entry"))
-		pt.AddTag([]byte("source"), []byte("byf-kafka"))
-		pt.AddTag([]byte("service_type"), []byte("byf-tspanchunk"))
-		jsonBody, err := json.Marshal(tSpanChunk)
-		if err == nil {
-			pt.Add([]byte("message"), string(jsonBody))
-		}
-
-
-
-	*/
 	startTime := time.Now().UnixMicro()
 	if tSpanChunk.StartTime != nil {
 		//pt.SetTime(time.UnixMilli(*tSpanChunk.StartTime))
@@ -227,6 +190,12 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 		eventPt.Add([]byte("parent_id"), strconv.FormatInt(tSpanChunk.SpanId, 10))
 		eventPt.Add([]byte("start"), startTime+int64(event.StartElapsed)*1e3)
 		//	eventPt.AddTag([]byte("service"), []byte(tSpanChunk.ApplicationName))
+		if eventPt.GetTag([]byte("service")) == nil {
+			eventPt.AddTag([]byte("service"), []byte(tSpanChunk.ApplicationName))
+		}
+		eventPt.AddTag([]byte("span_type"), []byte("entry"))
+		eventPt.AddTag([]byte("source"), []byte("byf-kafka"))
+		eventPt.AddTag([]byte("service_type"), []byte("bfy-tspanchunk"))
 		eventPt.AddTag([]byte("transactionId"), []byte(transactionID))
 		pts = append(pts, eventPt)
 	}
