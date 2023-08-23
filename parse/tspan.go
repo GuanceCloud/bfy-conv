@@ -39,7 +39,7 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 		eventPt.Add([]byte("trace_id"), traceid)
 		eventPt.Add([]byte("parent_id"), strconv.FormatInt(tSpan.SpanId, 10))
 		eventPt.Add([]byte("start"), (tSpan.StartTime+int64(event.StartElapsed))*1e3)
-		eventPt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
+		//	eventPt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
 		eventPt.AddTag([]byte("transactionId"), []byte(xid))
 		eventPt.SetTime(time.UnixMilli(tSpan.StartTime + int64(event.StartElapsed)))
 

@@ -95,11 +95,6 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 		switch {
 		case st.IsQueue:
 			pt.AddTag([]byte("source_type"), []byte("db"))
-			if event.IsSetSql() {
-				pt.AddTag([]byte("db.host"), []byte(event.Sql.Dbhost))
-				pt.AddTag([]byte("db.type"), []byte(event.Sql.Dbtype))
-				pt.AddTag([]byte("db.status"), []byte(event.Sql.Status))
-			}
 		case st.IsIncludeDestinationID == 1:
 			pt.AddTag([]byte("source_type"), []byte("db"))
 		case st.IsRecordStatistics == 1:
@@ -123,13 +118,26 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 		default:
 			pt.AddTag([]byte("source_type"), []byte("unknown"))
 		}
+
+		pt.AddTag([]byte("service"), []byte(st.TypeDesc))
 	} else {
 		return nil
+	}
+	if event.IsSetSql() {
+		pt.AddTag([]byte("db.host"), []byte(event.Sql.Dbhost))
+		pt.AddTag([]byte("db.type"), []byte(event.Sql.Dbtype))
+		pt.AddTag([]byte("db.status"), []byte(event.Sql.Status))
+	}
+
+	if event.IsSetDestinationId() {
+		pt.AddTag([]byte("operation"), []byte(*event.DestinationId))
+	} else {
+		pt.AddTag([]byte("operation"), []byte(resource))
 	}
 
 	pt.Add([]byte("resource"), resource)
 	pt.AddTag([]byte("source"), []byte("byf-kafka"))
-	pt.AddTag([]byte("operation"), []byte(resource))
+
 	if event.IsSetAnnotations() {
 		for _, ann := range event.Annotations {
 			pt.AddTag([]byte("source"), []byte(ann.GetValue().String()))
@@ -218,7 +226,7 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 		eventPt.Add([]byte("trace_id"), traceID)
 		eventPt.Add([]byte("parent_id"), strconv.FormatInt(tSpanChunk.SpanId, 10))
 		eventPt.Add([]byte("start"), startTime+int64(event.StartElapsed)*1e3)
-		eventPt.AddTag([]byte("service"), []byte(tSpanChunk.ApplicationName))
+		//	eventPt.AddTag([]byte("service"), []byte(tSpanChunk.ApplicationName))
 		eventPt.AddTag([]byte("transactionId"), []byte(transactionID))
 		pts = append(pts, eventPt)
 	}
