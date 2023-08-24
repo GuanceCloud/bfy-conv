@@ -54,7 +54,7 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 	pt.Add([]byte("span_id"), strconv.FormatInt(tSpan.SpanId, 10))
 	pt.Add([]byte("trace_id"), traceid)
 	pid := tSpan.ParentSpanId
-	if pid < 0 {
+	if pid == 0 {
 		pid = 0
 	}
 	pt.Add([]byte("parent_id"), strconv.FormatInt(pid, 10))

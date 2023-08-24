@@ -79,11 +79,7 @@ func Handle(message []byte) (pts []*point.Point) {
 func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	pt := &point.Point{}
 	pt.SetName("kafka-bfy")
-	if event.SpanId != nil {
-		pt.Add([]byte("span_id"), strconv.FormatInt(*event.SpanId, 10))
-	} else {
-		pt.Add([]byte("span_id"), strconv.FormatInt(GetRandomWithAll(), 10))
-	}
+	pt.Add([]byte("span_id"), strconv.FormatInt(GetRandomWithAll(), 10))
 
 	d := (event.StartElapsed + event.EndElapsed) * 1e3 // 不乘
 	if d < 0 {
@@ -93,27 +89,64 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	resource := ""
 	if st, ok := ServiceTypeMap[event.ServiceType]; ok {
 		resource = st.Name
-		switch {
-		case st.IsQueue:
-			pt.AddTag([]byte("source_type"), []byte("message_queue"))
-		case st.IsIncludeDestinationID == 1:
-			pt.AddTag([]byte("source_type"), []byte("db"))
-		case st.IsRecordStatistics == 1:
-			pt.AddTag([]byte("source_type"), []byte("custom"))
-		case st.IsInternalMethod == 1:
-			pt.AddTag([]byte("source_type"), []byte("custom"))
-		case st.IsRpcClient == 1:
-			pt.AddTag([]byte("source_type"), []byte("http"))
-		case st.IsTerminal == 1:
-			pt.AddTag([]byte("service"), []byte(strings.ToLower(st.TypeDesc)))
-			pt.AddTag([]byte("source_type"), []byte("db"))
-		case st.IsUser == 1:
-			pt.AddTag([]byte("source_type"), []byte("custom"))
-		case st.IsUnknown == 1:
-			pt.AddTag([]byte("source_type"), []byte("unknown"))
-		default:
-			//	pt.AddTag([]byte("source_type"), []byte("unknown"))
+
+		if st.IsQueue {
+			pt.MustAddTag([]byte("source_type"), []byte("message_queue"))
 		}
+
+		if st.IsIncludeDestinationID == 1 {
+			pt.MustAddTag([]byte("source_type"), []byte("db"))
+		}
+
+		if st.IsRecordStatistics == 1 {
+			pt.MustAddTag([]byte("source_type"), []byte("custom"))
+		}
+
+		if st.IsInternalMethod == 1 {
+			pt.MustAddTag([]byte("source_type"), []byte("custom"))
+		}
+
+		if st.IsRpcClient == 1 {
+			pt.MustAddTag([]byte("source_type"), []byte("http"))
+		}
+
+		if st.IsTerminal == 1 {
+			pt.MustAddTag([]byte("service"), []byte(strings.ToLower(st.TypeDesc)))
+			pt.MustAddTag([]byte("source_type"), []byte("db"))
+		}
+
+		if st.IsUser == 1 {
+			pt.MustAddTag([]byte("source_type"), []byte("custom"))
+		}
+
+		if st.IsUnknown == 1 {
+			pt.MustAddTag([]byte("source_type"), []byte("unknown"))
+		}
+
+		if pt.GetTag([]byte("source_type")) == nil {
+			pt.MustAddTag([]byte("source_type"), []byte("unknown"))
+		}
+		/*		switch {
+				case st.IsQueue:
+					pt.AddTag([]byte("source_type"), []byte("message_queue"))
+				case st.IsIncludeDestinationID == 1:
+					pt.AddTag([]byte("source_type"), []byte("db"))
+				case st.IsRecordStatistics == 1:
+					pt.AddTag([]byte("source_type"), []byte("custom"))
+				case st.IsInternalMethod == 1:
+					pt.AddTag([]byte("source_type"), []byte("custom"))
+				case st.IsRpcClient == 1:
+					pt.AddTag([]byte("source_type"), []byte("http"))
+				case st.IsTerminal == 1:
+					pt.AddTag([]byte("service"), []byte(strings.ToLower(st.TypeDesc)))
+					pt.AddTag([]byte("source_type"), []byte("db"))
+				case st.IsUser == 1:
+					pt.AddTag([]byte("source_type"), []byte("custom"))
+				case st.IsUnknown == 1:
+					pt.AddTag([]byte("source_type"), []byte("unknown"))
+				default:
+					//	pt.AddTag([]byte("source_type"), []byte("unknown"))
+				}*/
 
 	} else {
 		return nil
