@@ -60,11 +60,16 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 	pt.Add([]byte("parent_id"), strconv.FormatInt(pid, 10))
 	pt.Add([]byte("start"), tSpan.StartTime*1e3)
 	pt.Add([]byte("duration"), tSpan.Elapsed*1e3)
-	pt.Add([]byte("resource"), *tSpan.RPC)
+	if tSpan.IsSetRPC() {
+		pt.Add([]byte("resource"), *tSpan.RPC)
+		pt.AddTag([]byte("operation"), []byte(*tSpan.RPC))
+	} else {
+		pt.Add([]byte("resource"), "unknown")
+		pt.AddTag([]byte("operation"), []byte("unknown"))
+	}
 
 	pt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
 	pt.AddTag([]byte("service_name"), []byte(serviceName(tSpan.ServiceType)))
-	pt.AddTag([]byte("operation"), []byte(*tSpan.RPC))
 	pt.AddTag([]byte("source_type"), []byte(sourceType(tSpan.ServiceType)))
 	pt.AddTag([]byte("transactionId"), []byte(xid))
 	pt.AddTag([]byte("original_type"), []byte("Span"))

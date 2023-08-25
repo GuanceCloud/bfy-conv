@@ -126,28 +126,6 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 		if pt.GetTag([]byte("source_type")) == nil {
 			pt.MustAddTag([]byte("source_type"), []byte("unknown"))
 		}
-		/*		switch {
-				case st.IsQueue:
-					pt.AddTag([]byte("source_type"), []byte("message_queue"))
-				case st.IsIncludeDestinationID == 1:
-					pt.AddTag([]byte("source_type"), []byte("db"))
-				case st.IsRecordStatistics == 1:
-					pt.AddTag([]byte("source_type"), []byte("custom"))
-				case st.IsInternalMethod == 1:
-					pt.AddTag([]byte("source_type"), []byte("custom"))
-				case st.IsRpcClient == 1:
-					pt.AddTag([]byte("source_type"), []byte("http"))
-				case st.IsTerminal == 1:
-					pt.AddTag([]byte("service"), []byte(strings.ToLower(st.TypeDesc)))
-					pt.AddTag([]byte("source_type"), []byte("db"))
-				case st.IsUser == 1:
-					pt.AddTag([]byte("source_type"), []byte("custom"))
-				case st.IsUnknown == 1:
-					pt.AddTag([]byte("source_type"), []byte("unknown"))
-				default:
-					//	pt.AddTag([]byte("source_type"), []byte("unknown"))
-				}*/
-
 	} else {
 		return nil
 	}
@@ -175,7 +153,7 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 
 	if event.IsSetAnnotations() {
 		for _, ann := range event.Annotations {
-			pt.AddTag([]byte("source"), []byte(ann.GetValue().String()))
+			pt.AddTag([]byte("key"+strconv.Itoa(int(ann.Key))), []byte(ann.GetValue().String()))
 		}
 	}
 	jsonBody, err := json.Marshal(event)
