@@ -15,9 +15,29 @@ import (
 
 var log *logger.Logger
 var HeaderKey = "x-b3-traceid"
+var appFilter *AppFilter
 
 func SetLogger(slog *logger.Logger) {
 	log = slog
+}
+
+type AppFilter struct {
+	ProjectName string
+	Projects    map[string][]string
+}
+
+func InitAppFilter(apps map[string]string) {
+	if apps == nil || len(apps) == 0 {
+		return
+	}
+	af := &AppFilter{
+		Projects: make(map[string][]string),
+	}
+	for pname, anames := range apps {
+		ns := strings.Split(anames, ",")
+		af.Projects[pname] = ns
+	}
+	appFilter = af
 }
 
 // Handle : message to points.
@@ -179,7 +199,26 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 	if tSpanChunk == nil {
 		return
 	}
-
+	appName := tSpanChunk.ApplicationName
+	projectKey := "project"
+	projectVal := ""
+	if appFilter != nil {
+		filter := false
+		// 过滤 app 名称， 通过之后增加tag：project="project_name"
+		for pName, appNames := range appFilter.Projects {
+			for _, name := range appNames {
+				if name == appName {
+					projectVal = pName
+					filter = true
+					break
+				}
+			}
+		}
+		if !filter {
+			log.Debugf("del applicationName %s", appName)
+			return
+		}
+	}
 	if tSpanChunk.SpanEventList == nil || len(tSpanChunk.SpanEventList) == 0 {
 		return
 	}
@@ -200,9 +239,12 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 		eventPt.Add([]byte("trace_id"), traceID)
 		eventPt.Add([]byte("parent_id"), strconv.FormatInt(tSpanChunk.SpanId, 10))
 		eventPt.Add([]byte("start"), startTime+int64(event.StartElapsed)*1e3)
-		//	eventPt.AddTag([]byte("service"), []byte(tSpanChunk.ApplicationName))
+
 		if eventPt.GetTag([]byte("service")) == nil {
 			eventPt.AddTag([]byte("service"), []byte(tSpanChunk.ApplicationName))
+		}
+		if projectVal != "" {
+			eventPt.AddTag([]byte(projectKey), []byte(projectVal))
 		}
 		eventPt.AddTag([]byte("span_type"), []byte("entry"))
 		eventPt.AddTag([]byte("source"), []byte("byf-kafka"))

@@ -1,9 +1,12 @@
 package parse
 
 import (
+	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"github.com/GuanceCloud/bfy-conv/mock"
 	"github.com/IBM/sarama"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -90,4 +93,29 @@ func TestSendToKafka(t *testing.T) {
 	}
 
 	fmt.Printf("Message sent successfully. Partition: %d, Offset: %d\n", partition, offset)
+}
+
+func TestConv(t *testing.T) {
+	bts, err := hex.DecodeString("00f067aa0ba902b7")
+	if err != nil {
+		t.Fatalf("err=%v", err)
+	}
+	num := binary.BigEndian.Uint64(bts)
+
+	id_s := strconv.FormatUint(num, 10)
+	t.Log(id_s)
+	id, err := strconv.ParseUint("00f067aa0ba902b7", 16, 64)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Logf("id =%d", id)
+
+	id_str := strconv.FormatUint(id, 16)
+	t.Logf("string id =%s", id_str)
+
+	if id_s == id_str {
+		t.Log("true")
+	} else {
+		t.Log("false")
+	}
 }

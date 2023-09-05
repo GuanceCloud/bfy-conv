@@ -30,6 +30,26 @@ func parseTSpan(buf []byte) (*span.TSpan, error) {
 
 func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point {
 	pts := make([]*point.Point, 0)
+	appName := tSpan.ApplicationName
+	projectKey := "project"
+	projectVal := ""
+	if appFilter != nil {
+		filter := false
+		// 过滤 app 名称， 通过之后增加tag：project="project_name"
+		for pName, appNames := range appFilter.Projects {
+			for _, name := range appNames {
+				if name == appName {
+					projectVal = pName
+					filter = true
+					break
+				}
+			}
+		}
+		if !filter {
+			log.Debugf("del applicationName %s", appName)
+			return pts
+		}
+	}
 	for _, event := range tSpan.SpanEventList {
 		eventPt := ptdecodeEvent(event)
 		if eventPt == nil {
@@ -42,7 +62,9 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 		if eventPt.GetTag([]byte("service")) == nil {
 			eventPt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
 		}
-		//	eventPt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
+		if projectVal != "" {
+			eventPt.AddTag([]byte(projectKey), []byte(projectVal))
+		}
 		eventPt.AddTag([]byte("transactionId"), []byte(xid))
 		eventPt.SetTime(time.UnixMilli(tSpan.StartTime + int64(event.StartElapsed)))
 
