@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/GuanceCloud/bfy-conv/gen-go/span"
+	"github.com/GuanceCloud/bfy-conv/jvmparse"
 	"github.com/GuanceCloud/cliutils/logger"
 	"github.com/GuanceCloud/cliutils/point"
 	"github.com/apache/thrift/lib/go/thrift"
@@ -41,7 +42,7 @@ func InitAppFilter(apps map[string]string) {
 }
 
 // Handle : message to points.
-func Handle(message []byte) (pts []*point.Point) {
+func Handle(message []byte) (pts []*point.Point, category point.Category) {
 	// 判断类型
 	msgType, err := code(message)
 	if err != nil {
@@ -73,6 +74,7 @@ func Handle(message []byte) (pts []*point.Point) {
 			tid = xID
 		}
 		pts = tSpanToPoint(tSpan, tid, xID)
+		category = point.Tracing
 	case 70:
 		tSpanChunk, err := parseTSpanChunk(message[4:])
 		if err != nil {
@@ -89,11 +91,48 @@ func Handle(message []byte) (pts []*point.Point) {
 		}
 
 		pts = tSpanChunkToPoint(tSpanChunk, tid, xID)
+		category = point.Tracing
+	case 56:
+		agentStat, err := jvmparse.ParseJVMMetrics(message[4:])
+		if err != nil {
+			log.Warnf("can parse to AgentStatBatch! err=%v", err)
+		}
+		if agentStat != nil {
+			pts = jvmparse.StatBatchToPoints(agentStat)
+			category = point.Metric
+		}
+	case 50:
+		agentInfo, err := jvmparse.ParseAgentInfo(message[4:])
+		if err != nil {
+			log.Warnf("can parse to AgentInfo")
+		}
+
+		if agentInfo != nil {
+			log.Warnf("AgentInfo=%+v", agentInfo)
+		}
+
+	case 57:
+		AgentEvent, err := jvmparse.ParseAgentEvent(message[4:])
+		if err != nil {
+			log.Warnf("can parse to AgentInfo")
+		}
+
+		if AgentEvent != nil {
+			log.Warnf("AgentInfo=%+v", AgentEvent)
+		}
+
 	default:
+		// todo ...
+		// 50 AgentInfo
+		// 55 AgentStats
+		// 56 AgentStatBatch
+		// 57 AgentEvent
+		// 58 AgentLifeCycle
+
 		log.Debugf("unknown type code=%d", msgType)
 	}
 
-	return pts
+	return pts, category
 }
 
 func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
