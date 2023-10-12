@@ -58,6 +58,7 @@ func StatBatchToPoints(batch *server.TAgentStatBatch) (pts []*point.Point) {
 			pt := point.NewPointV2([]byte("agentStats-gc"), gckvs, point.DefaultMetricOptions()...)
 			pts = append(pts, pt)
 		}
+		// trace:= stat.GetActiveTrace() dk 不支持该指标
 	}
 
 	return pts

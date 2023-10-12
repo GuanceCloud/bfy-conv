@@ -86,6 +86,12 @@ func code(buf []byte) (int, error) {
 		code = 40
 	} else if buf[2] == 0 && buf[3] == 70 {
 		code = 70
+	} else if buf[2] == 0 && buf[3] == 56 {
+		code = 56
+	} else if buf[2] == 0 && buf[3] == 57 {
+		code = 57
+	} else if buf[2] == 0 && buf[3] == 50 {
+		code = 50
 	} else {
 		log.Debugf("Invalid Protocol Code: %d \n", buf[3])
 		return -1, errors.New("invalid Protocol Code")
