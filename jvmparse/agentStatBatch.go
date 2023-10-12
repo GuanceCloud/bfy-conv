@@ -6,6 +6,7 @@ import (
 	"github.com/GuanceCloud/bfy-conv/gen-go/server"
 	"github.com/GuanceCloud/cliutils/point"
 	"github.com/apache/thrift/lib/go/thrift"
+	"time"
 )
 
 func ParseJVMMetrics(buf []byte) (*server.TAgentStatBatch, error) {
@@ -24,6 +25,8 @@ func StatBatchToPoints(batch *server.TAgentStatBatch) (pts []*point.Point) {
 	pts = make([]*point.Point, 0)
 	appID := batch.GetAppId()
 	agentID := batch.GetAgentId()
+	opts := point.DefaultMetricOptions()
+	opts = append(opts, point.WithTime(time.UnixMilli(batch.GetStartTimestamp())))
 
 	for _, stat := range batch.AgentStats {
 		cpuLoad := stat.GetCpuLoad()
@@ -31,7 +34,7 @@ func StatBatchToPoints(batch *server.TAgentStatBatch) (pts []*point.Point) {
 			var cpukv point.KVs
 			cpukv.Add([]byte("SystemCpuLoad"), cpuLoad.GetSystemCpuLoad(), false, false)
 			cpukv.Add([]byte("JvmCpuLoad"), cpuLoad.GetJvmCpuLoad(), false, false)
-			pt := point.NewPointV2([]byte("agentStats-cpu"), cpukv, point.DefaultMetricOptions()...)
+			pt := point.NewPointV2([]byte("agentStats-cpu"), cpukv, opts...)
 			pts = append(pts, pt)
 		}
 
@@ -55,7 +58,7 @@ func StatBatchToPoints(batch *server.TAgentStatBatch) (pts []*point.Point) {
 			gckvs.Add([]byte("JvmGcOldCountNew"), gc.GetJvmGcOldCountNew(), false, false)
 			gckvs.Add([]byte("JvmGcOldCountNew"), gc.GetJvmGcOldCountNew(), false, false)
 			gckvs.Add([]byte("ThreadNum"), gc.GetThreadNum(), false, false)
-			pt := point.NewPointV2([]byte("agentStats-gc"), gckvs, point.DefaultMetricOptions()...)
+			pt := point.NewPointV2([]byte("agentStats-gc"), gckvs, opts...)
 			pts = append(pts, pt)
 		}
 		// trace:= stat.GetActiveTrace() dk 不支持该指标
