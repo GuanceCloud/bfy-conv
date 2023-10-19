@@ -6,7 +6,7 @@ require (
 	github.com/GuanceCloud/cliutils v0.1.2
 	github.com/IBM/sarama v1.40.1
 	github.com/apache/thrift v0.15.0
-	github.com/gomodule/redigo v1.8.9
+	github.com/gomodule/redigo v2.0.0+incompatible
 )
 
 require (

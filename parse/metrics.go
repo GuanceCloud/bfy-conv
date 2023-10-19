@@ -161,16 +161,19 @@ func parseAgentEvent(buf []byte) (*server.TAgentEvent, error) {
 
 func storeIPToRedis(appID, agentID string, ip string) error {
 	if c1 != nil {
-		_, err := c1.Do("set", agentID+"-"+appID, ip)
-		return err
+		if agentID != "" && appID != "" && ip != "" {
+			_, err := c1.Do("set", agentID+"|"+appID, ip)
+			return err
+		}
 	} else {
 		return fmt.Errorf("redis conn is nil")
 	}
+	return nil
 }
 
 func findIPFromRedis(appID, agentID string) string {
 	if c1 != nil {
-		cacheIP, err := redis.String(c1.Do("get", agentID+"-"+appID))
+		cacheIP, err := redis.String(c1.Do("get", agentID+"|"+appID))
 		if err == nil {
 			return cacheIP
 		}
