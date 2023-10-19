@@ -86,8 +86,39 @@ func statBatchToPoints(batch *server.TAgentStatBatch) (pts []*point.Point) {
 				Add([]byte("JvmMemoryNonHeapCommitted"), gc.GetJvmMemoryNonHeapCommitted(), false, false).
 				Add([]byte("TotalPhysicalMemory"), gc.GetTotalPhysicalMemory(), false, false)
 
-			if gc.GetJdbcConnNum() != 0 {
-				gckvs = gckvs.Add([]byte("JdbcConnNum"), gc.GetJdbcConnNum(), false, false)
+			if gc.GetJvmGcDetailed() != nil {
+				detailed := gc.GetJvmGcDetailed()
+				gckvs = gckvs.Add([]byte("GcNewCount"), detailed.GetJvmGcNewCount(), false, false).
+					Add([]byte("PoolCodeCacheUsage"), detailed.GetJvmPoolCodeCacheUsage(), false, false).
+					Add([]byte("PoolCodeCacheMax"), detailed.GetJvmPoolCodeCacheMax(), false, false).
+					Add([]byte("PoolCodeCacheUsed"), detailed.GetJvmPoolCodeCacheUsed(), false, false).
+					Add([]byte("PoolCodeCacheCommitted"), detailed.GetJvmPoolCodeCacheCommitted(), false, false).
+					Add([]byte("PoolCodeCacheInit"), detailed.GetJvmPoolCodeCacheInit(), false, false).
+					Add([]byte("PoolNewGenUsage"), detailed.GetJvmPoolNewGenUsage(), false, false).
+					Add([]byte("PoolNewGenMax"), detailed.GetJvmPoolNewGenMax(), false, false).
+					Add([]byte("PoolNewGenUsed"), detailed.GetJvmPoolNewGenUsed(), false, false).
+					Add([]byte("PoolNewGenCommitted"), detailed.GetJvmPoolNewGenCommitted(), false, false).
+					Add([]byte("PoolNewGenInit"), detailed.GetJvmPoolNewGenInit(), false, false).
+					Add([]byte("PoolOldGenUsage"), detailed.GetJvmPoolOldGenUsage(), false, false).
+					Add([]byte("PoolOldGenMax"), detailed.GetJvmPoolOldGenMax(), false, false).
+					Add([]byte("PoolOldGenUsed"), detailed.GetJvmPoolOldGenUsed(), false, false).
+					Add([]byte("PoolOldGenCommitted"), detailed.GetJvmPoolOldGenCommitted(), false, false).
+					Add([]byte("PoolOldGenInit"), detailed.GetJvmPoolOldGenInit(), false, false).
+					Add([]byte("PoolSurvivorSpaceUsage"), detailed.GetJvmPoolSurvivorSpaceUsage(), false, false).
+					Add([]byte("PoolSurvivorSpaceMax"), detailed.GetJvmPoolSurvivorSpaceMax(), false, false).
+					Add([]byte("PoolSurvivorSpaceUsed"), detailed.GetJvmPoolSurvivorSpaceUsed(), false, false).
+					Add([]byte("PoolSurvivorSpaceCommitted"), detailed.GetJvmPoolSurvivorSpaceCommitted(), false, false).
+					Add([]byte("PoolSurvivorSpaceInit"), detailed.GetJvmPoolSurvivorSpaceInit(), false, false).
+					Add([]byte("PoolPermGenUsage"), detailed.GetJvmPoolPermGenUsage(), false, false).
+					Add([]byte("PoolPermGenMax"), detailed.GetJvmPoolPermGenMax(), false, false).
+					Add([]byte("PoolPermGenUsed"), detailed.GetJvmPoolPermGenUsed(), false, false).
+					Add([]byte("PoolPermGenCommitted"), detailed.GetJvmPoolPermGenCommitted(), false, false).
+					Add([]byte("PoolPermGenInit"), detailed.GetJvmPoolPermGenInit(), false, false).
+					Add([]byte("PoolMetaspaceUsage"), detailed.GetJvmPoolMetaspaceUsage(), false, false).
+					Add([]byte("PoolMetaspaceMax"), detailed.GetJvmPoolMetaspaceMax(), false, false).
+					Add([]byte("PoolMetaspaceUsed"), detailed.GetJvmPoolMetaspaceUsed(), false, false).
+					Add([]byte("PoolMetaspaceCommitted"), detailed.GetJvmPoolMetaspaceCommitted(), false, false).
+					Add([]byte("PoolMetaspaceInit"), detailed.GetJvmPoolMetaspaceInit(), false, false)
 			}
 			gckvs = gckvs.Add([]byte("JvmGcOldCountNew"), gc.GetJvmGcOldCountNew(), false, false).
 				Add([]byte("JvmGcOldCountNew"), gc.GetJvmGcOldCountNew(), false, false).
