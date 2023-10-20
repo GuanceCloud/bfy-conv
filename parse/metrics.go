@@ -54,10 +54,10 @@ func statBatchToPoints(batch *server.TAgentStatBatch) (pts []*point.Point) {
 	ip := findIPFromRedis(batch.GetAppId(), batch.GetAgentId())
 	// todo 添加 IP
 	agentID := batch.GetAgentId()
-	opts := point.DefaultMetricOptions()
-	opts = append(opts, point.WithTime(time.UnixMilli(batch.GetStartTimestamp())))
 
 	for _, stat := range batch.AgentStats {
+		opts := point.DefaultMetricOptions()
+		opts = append(opts, point.WithTime(time.UnixMilli(stat.GetTimestamp())))
 		cpuLoad := stat.GetCpuLoad()
 		if cpuLoad != nil {
 			var cpukv point.KVs
