@@ -83,6 +83,7 @@ func statBatchToPoints(batch *server.TAgentStatBatch) (pts []*point.Point) {
 				Add([]byte("JvmMemoryNonHeapUsed"), gc.GetJvmMemoryNonHeapUsed(), false, false).
 				Add([]byte("JvmMemoryNonHeapMax"), gc.GetJvmMemoryNonHeapMax(), false, false).
 				Add([]byte("JvmGcOldCount"), gc.GetJvmGcOldCount(), false, false).
+				Add([]byte("JvmGcOldTime"), gc.GetJvmGcOldTime(), false, false).
 				Add([]byte("JvmMemoryNonHeapCommitted"), gc.GetJvmMemoryNonHeapCommitted(), false, false).
 				Add([]byte("TotalPhysicalMemory"), gc.GetTotalPhysicalMemory(), false, false)
 
