@@ -90,6 +90,7 @@ func statBatchToPoints(batch *server.TAgentStatBatch) (pts []*point.Point) {
 				detailed := gc.GetJvmGcDetailed()
 				gckvs = gckvs.Add([]byte("GcNewCount"), detailed.GetJvmGcNewCount(), false, false).
 					Add([]byte("PoolCodeCacheUsage"), detailed.GetJvmPoolCodeCacheUsage(), false, false).
+					Add([]byte("GcNewTime"), detailed.GetJvmGcNewTime(), false, false).
 					Add([]byte("PoolCodeCacheMax"), detailed.GetJvmPoolCodeCacheMax(), false, false).
 					Add([]byte("PoolCodeCacheUsed"), detailed.GetJvmPoolCodeCacheUsed(), false, false).
 					Add([]byte("PoolCodeCacheCommitted"), detailed.GetJvmPoolCodeCacheCommitted(), false, false).
