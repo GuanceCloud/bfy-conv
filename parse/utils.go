@@ -105,11 +105,13 @@ func getTidFromHeader(header string, key string, xid string) string {
 		return ""
 	}
 	headers := strings.Split(header, ";")
+	c := pool.Get()
+	defer func() { c.Close() }()
 	for _, h := range headers {
 		if strings.HasPrefix(h, key) {
 			vals := strings.Split(h, ",")
 			if len(vals) >= 2 {
-				c1.Do("set", xid, vals[1])
+				c.Do("set", xid, vals[1])
 				return vals[1]
 			}
 		}
@@ -118,8 +120,10 @@ func getTidFromHeader(header string, key string, xid string) string {
 }
 
 func getTidFromRedis(xid string) string {
+	c := pool.Get()
+	defer func() { c.Close() }()
 	traceID := ""
-	cachedTraceID, err := redis.String(c1.Do("get", xid))
+	cachedTraceID, err := redis.String(c.Do("get", xid))
 	if err != nil || cachedTraceID == "" {
 		log.Warnf("can not get %s form redis ,err=%v , or trace_id=%s", xid, err, cachedTraceID)
 		return traceID

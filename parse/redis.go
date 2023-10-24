@@ -5,7 +5,8 @@ import (
 	"time"
 )
 
-var c1 redis.Conn
+//var c1 redis.Conn
+var pool *redis.Pool
 
 func InitRedis(host string, port string, password string, db int) {
 	if host == "" {
@@ -22,15 +23,13 @@ func InitRedis(host string, port string, password string, db int) {
 	timeout := redis.DialConnectTimeout(5 * time.Second)    //连接超时时间
 	readTimeout := redis.DialReadTimeout(5 * time.Second)   //读超时时间
 	writeTimeout := redis.DialWriteTimeout(5 * time.Second) //写超时时间
-	var err error
-	c1, err = redis.Dial("tcp", host+":"+port, setdb, setPasswd, timeout, readTimeout, writeTimeout)
-	if err != nil {
-		log.Error(err)
-	}
-}
 
-func StopRedis() {
-	if c1 != nil {
-		_ = c1.Close()
+	pool = &redis.Pool{
+		MaxIdle:     16,
+		MaxActive:   1024,
+		IdleTimeout: 300,
+		Dial: func() (redis.Conn, error) {
+			return redis.Dial("tcp", host+":"+port, setdb, setPasswd, timeout, readTimeout, writeTimeout)
+		},
 	}
 }
