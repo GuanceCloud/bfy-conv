@@ -169,6 +169,7 @@ func storeIPToRedis(appID, agentID string, ip string) error {
 		}()
 		if agentID != "" && appID != "" && ip != "" {
 			_, err := c.Do("set", agentID+"|"+appID, ip)
+			log.Infof("redis set key=%s ip=%s , err=%v", agentID+"|"+appID, ip, err)
 			return err
 		}
 	} else {
@@ -182,6 +183,7 @@ func findIPFromRedis(appID, agentID string) string {
 		c := pool.Get()
 		defer func() { c.Close() }()
 		cacheIP, err := redis.String(c.Do("get", agentID+"|"+appID))
+		log.Infof("redis get key=%s ip=%s err=%v", agentID+"|"+appID, cacheIP, err)
 		if err == nil {
 			return cacheIP
 		}

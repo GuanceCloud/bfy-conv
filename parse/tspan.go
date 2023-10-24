@@ -89,7 +89,7 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 		pt.Add([]byte("resource"), "unknown")
 		pt.AddTag([]byte("operation"), []byte("unknown"))
 	}
-
+	pt.AddTag([]byte(projectKey), []byte(projectVal))
 	pt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
 	pt.AddTag([]byte("service_name"), []byte(serviceName(tSpan.ServiceType)))
 	pt.AddTag([]byte("source_type"), []byte(sourceType(tSpan.ServiceType)))
