@@ -125,7 +125,7 @@ func getTidFromRedis(xid string) string {
 	traceID := ""
 	cachedTraceID, err := redis.String(c.Do("get", xid))
 	if err != nil || cachedTraceID == "" {
-		log.Warnf("can not get %s form redis ,err=%v , or trace_id=%s", xid, err, cachedTraceID)
+		log.Debugf("can not get %s form redis ,err=%v , or trace_id=%s", xid, err, cachedTraceID)
 		return traceID
 	}
 
