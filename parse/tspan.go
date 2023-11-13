@@ -62,6 +62,8 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 		if eventPt.GetTag([]byte("service")) == nil {
 			eventPt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
 		}
+
+		eventPt.AddTag([]byte("process_time"), []byte(time.Now().Format("2006-01-02 15:04:05.000")))
 		if projectVal != "" {
 			eventPt.AddTag([]byte(projectKey), []byte(projectVal))
 		}

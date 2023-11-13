@@ -16,6 +16,7 @@ import (
 var log *logger.Logger
 var HeaderKey = "x-b3-traceid"
 var appFilter *AppFilter
+var SkipSpanChunk = true
 
 func SetLogger(slog *logger.Logger) {
 	log = slog
@@ -75,6 +76,9 @@ func Handle(message []byte) (pts []*point.Point, category point.Category) {
 		pts = tSpanToPoint(tSpan, tid, xID)
 		category = point.Tracing
 	case 70:
+		if SkipSpanChunk {
+			return
+		}
 		tSpanChunk, err := parseTSpanChunk(message[4:])
 		if err != nil {
 			log.Warnf("parse tSpan err=%v", err)

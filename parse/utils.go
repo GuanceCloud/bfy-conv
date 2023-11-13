@@ -111,7 +111,7 @@ func getTidFromHeader(header string, key string, xid string) string {
 		if strings.HasPrefix(h, key) {
 			vals := strings.Split(h, ",")
 			if len(vals) >= 2 {
-				c.Do("set", xid, vals[1])
+				c.Do("SET", xid, vals[1], "EX", 600)
 				return vals[1]
 			}
 		}
