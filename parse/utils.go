@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/gomodule/redigo/redis"
 	"math"
 	"math/rand"
 	"strings"
@@ -105,13 +104,12 @@ func getTidFromHeader(header string, key string, xid string) string {
 		return ""
 	}
 	headers := strings.Split(header, ";")
-	c := pool.Get()
-	defer func() { c.Close() }()
+
 	for _, h := range headers {
 		if strings.HasPrefix(h, key) {
 			vals := strings.Split(h, ",")
 			if len(vals) >= 2 {
-				c.Do("SET", xid, vals[1], "EX", 600)
+				RedigoSet(xid, vals[1])
 				return vals[1]
 			}
 		}
@@ -120,15 +118,8 @@ func getTidFromHeader(header string, key string, xid string) string {
 }
 
 func getTidFromRedis(xid string) string {
-	c := pool.Get()
-	defer func() { c.Close() }()
 	traceID := ""
-	cachedTraceID, err := redis.String(c.Do("get", xid))
-	if err != nil || cachedTraceID == "" {
-		log.Debugf("can not get %s form redis ,err=%v , or trace_id=%s", xid, err, cachedTraceID)
-		return traceID
-	}
-
+	cachedTraceID := RedigoGet(xid)
 	if utf8.Valid([]byte(cachedTraceID)) {
 		traceID = cachedTraceID
 	}

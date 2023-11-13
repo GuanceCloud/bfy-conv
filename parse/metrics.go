@@ -7,7 +7,6 @@ import (
 	"github.com/GuanceCloud/bfy-conv/gen-go/server"
 	"github.com/GuanceCloud/cliutils/point"
 	"github.com/apache/thrift/lib/go/thrift"
-	"github.com/gomodule/redigo/redis"
 	"time"
 )
 
@@ -163,14 +162,9 @@ func parseAgentEvent(buf []byte) (*server.TAgentEvent, error) {
 
 func storeIPToRedis(appID, agentID string, ip string) error {
 	if pool != nil {
-		c := pool.Get()
-		defer func() {
-			_ = c.Close()
-		}()
 		if agentID != "" && appID != "" && ip != "" {
-			_, err := c.Do("set", agentID+"|"+appID, ip)
-			log.Infof("redis set key=%s ip=%s , err=%v", agentID+"|"+appID, ip, err)
-			return err
+			RedigoSet(agentID+"|"+appID, ip)
+			return nil
 		}
 	} else {
 		return fmt.Errorf("redis conn is nil")
@@ -180,13 +174,7 @@ func storeIPToRedis(appID, agentID string, ip string) error {
 
 func findIPFromRedis(appID, agentID string) string {
 	if pool != nil {
-		c := pool.Get()
-		defer func() { c.Close() }()
-		cacheIP, err := redis.String(c.Do("get", agentID+"|"+appID))
-		log.Infof("redis get key=%s ip=%s err=%v", agentID+"|"+appID, cacheIP, err)
-		if err == nil {
-			return cacheIP
-		}
+		return RedigoGet(agentID + "|" + appID)
 	}
 	return ""
 }
