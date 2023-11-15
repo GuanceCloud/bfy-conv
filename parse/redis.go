@@ -43,22 +43,27 @@ func RedigoGet(key string) string {
 	if ok {
 		return va
 	}
+	if pool != nil {
+		c := pool.Get()
+		defer func() { c.Close() }()
 
-	c := pool.Get()
-	defer func() { c.Close() }()
+		va, err := redis.String(c.Do("GET", key))
+		if err != nil || va == "" {
+			log.Debugf("can not get %s form redis ,err=%v , or trace_id=%s", xid, err, va)
 
-	cachedTraceID, err := redis.String(c.Do("GET", key))
-	if err != nil || cachedTraceID == "" {
-		log.Debugf("can not get %s form redis ,err=%v , or trace_id=%s", xid, err, cachedTraceID)
-
+		}
 	}
-	return cachedTraceID
+
+	return va
 }
 
 func RedigoSet(key, val string) {
-	c := pool.Get()
-	defer func() { c.Close() }()
-	c.Do("SET", key, val, "EX", 600)
+	if pool != nil {
+		c := pool.Get()
+		defer func() { c.Close() }()
+		c.Do("SET", key, val, "EX", 600)
+	}
+
 	localCache.Set(key, val)
 }
 

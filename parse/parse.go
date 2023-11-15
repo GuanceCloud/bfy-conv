@@ -43,6 +43,7 @@ func InitAppFilter(apps map[string]string) {
 
 // Handle : message to points.
 func Handle(message []byte) (pts []*point.Point, category point.Category) {
+	pts = make([]*point.Point, 0)
 	// 判断类型
 	msgType, err := code(message)
 	if err != nil {
@@ -292,6 +293,7 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 		eventPt.AddTag([]byte("span_type"), []byte("entry"))
 		eventPt.AddTag([]byte("source"), []byte("byf-kafka"))
 		eventPt.AddTag([]byte("service_type"), []byte("bfy-tspanchunk"))
+		eventPt.AddTag([]byte("process_time"), []byte(time.Now().Format("2006-01-02 15:04:05.000")))
 		eventPt.AddTag([]byte("transactionId"), []byte(transactionID))
 		pts = append(pts, eventPt)
 	}
