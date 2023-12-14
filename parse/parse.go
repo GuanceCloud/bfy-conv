@@ -199,8 +199,8 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 		pt.Add([]byte("resource"), rpc)
 		pt.AddTag([]byte("operation"), []byte(rpc))
 		index := strings.Index(rpc, "?")
-		route := rpc[:index]
 		if index != -1 {
+			route := rpc[:index]
 			pt.AddTag([]byte("rpc_route"), []byte(route))
 		} else {
 			pt.AddTag([]byte("rpc_route"), []byte(rpc))
