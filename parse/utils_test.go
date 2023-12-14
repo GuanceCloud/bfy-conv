@@ -119,3 +119,10 @@ func TestConv(t *testing.T) {
 		t.Log("false")
 	}
 }
+
+func TestOperation(t *testing.T) {
+	operation := "/tmall/product/99?user=123&pw=asdf"
+	index := strings.Index(operation, "?")
+	route := operation[:index]
+	t.Logf("route= %s", route)
+}

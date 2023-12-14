@@ -195,7 +195,16 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	}
 
 	if event.IsSetRPC() {
-		pt.AddTag([]byte("rpc"), []byte(*event.RPC))
+		rpc := event.GetRPC()
+		pt.Add([]byte("resource"), rpc)
+		pt.AddTag([]byte("operation"), []byte(rpc))
+		index := strings.Index(rpc, "?")
+		route := rpc[:index]
+		if index != -1 {
+			pt.AddTag([]byte("rpc_route"), []byte(route))
+		} else {
+			pt.AddTag([]byte("rpc_route"), []byte(rpc))
+		}
 	}
 	if event.IsSetURL() {
 		pt.AddTag([]byte("url"), []byte(*event.URL))

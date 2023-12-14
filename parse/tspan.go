@@ -8,6 +8,7 @@ import (
 	"github.com/GuanceCloud/cliutils/point"
 	"github.com/apache/thrift/lib/go/thrift"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -87,8 +88,16 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 	pt.Add([]byte("start"), tSpan.StartTime*1e3)
 	pt.Add([]byte("duration"), tSpan.Elapsed*1e3)
 	if tSpan.IsSetRPC() {
-		pt.Add([]byte("resource"), *tSpan.RPC)
-		pt.AddTag([]byte("operation"), []byte(*tSpan.RPC))
+		rpc := tSpan.GetRPC()
+		pt.Add([]byte("resource"), rpc)
+		pt.AddTag([]byte("operation"), []byte(rpc))
+		index := strings.Index(rpc, "?")
+		route := rpc[:index]
+		if index != -1 {
+			pt.AddTag([]byte("rpc_route"), []byte(route))
+		} else {
+			pt.AddTag([]byte("rpc_route"), []byte(rpc))
+		}
 	} else {
 		pt.Add([]byte("resource"), "unknown")
 		pt.AddTag([]byte("operation"), []byte("unknown"))
