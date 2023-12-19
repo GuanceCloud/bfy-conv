@@ -22,7 +22,7 @@ func parseAgentStatBatch(buf []byte) (*server.TAgentStatBatch, error) {
 
 	protocol := thrift.NewTCompactProtocolConf(transport, &thrift.TConfiguration{})
 	batch := server.NewTAgentStatBatch()
-	ctx := context.Background()
+	ctx, _ := context.WithTimeout(context.Background(), time.Second)
 	err := batch.Read(ctx, protocol)
 	return batch, err
 }
@@ -140,7 +140,7 @@ func parseAgentInfo(buf []byte) (*server.TAgentInfo, error) {
 
 	protocol := thrift.NewTCompactProtocolConf(transport, &thrift.TConfiguration{})
 	info := server.NewTAgentInfo()
-	ctx := context.Background()
+	ctx, _ := context.WithTimeout(context.Background(), time.Second)
 	err := info.Read(ctx, protocol)
 	if info != nil {
 		err = storeIPToRedis(info.GetAppId(), info.GetAgentId(), info.GetIP())

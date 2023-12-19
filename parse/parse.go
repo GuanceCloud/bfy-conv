@@ -243,7 +243,7 @@ func parseTSpanChunk(buf []byte) (*span.TSpanChunk, error) {
 
 	protocol := thrift.NewTCompactProtocolConf(transport, &thrift.TConfiguration{})
 	tSpanChunk := span.NewTSpanChunk()
-	ctx := context.Background()
+	ctx, _ := context.WithTimeout(context.Background(), time.Second)
 	err := tSpanChunk.Read(ctx, protocol)
 	return tSpanChunk, err
 }

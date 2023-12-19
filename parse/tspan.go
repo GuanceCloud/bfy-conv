@@ -1,7 +1,6 @@
 package parse
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"github.com/GuanceCloud/bfy-conv/gen-go/span"
@@ -13,19 +12,25 @@ import (
 )
 
 func parseTSpan(buf []byte) (*span.TSpan, error) {
-	transport := &thrift.TMemoryBuffer{
-		Buffer: bytes.NewBuffer(buf),
-	}
-	strict := false
-	protocol := thrift.NewTCompactProtocolConf(transport, &thrift.TConfiguration{
-		MaxMessageSize:     0,
-		MaxFrameSize:       0,
-		TBinaryStrictRead:  &strict,
-		TBinaryStrictWrite: &strict,
-	})
+	/*	transport := &thrift.TMemoryBuffer{
+			Buffer: bytes.NewBuffer(buf),
+		}
+		strict := false
+		protocol := thrift.NewTCompactProtocolConf(transport, &thrift.TConfiguration{
+			MaxMessageSize:     0,
+			MaxFrameSize:       0,
+			TBinaryStrictRead:  &strict,
+			TBinaryStrictWrite: &strict,
+		})
+		tSpan := span.NewTSpan()
+		ctx := context.Background()
+		err := tSpan.Read(ctx, protocol)*/
+
 	tSpan := span.NewTSpan()
-	ctx := context.Background()
-	err := tSpan.Read(ctx, protocol)
+	ctx, cel := context.WithTimeout(context.Background(), time.Second)
+	s := thrift.NewTDeserializer()
+	err := s.Read(ctx, tSpan, buf)
+	cel()
 	return tSpan, err
 }
 
