@@ -62,7 +62,7 @@ func Handle(message []byte) (pts []*point.Point, category point.Category) {
 			log.Warnf("parse tSpan err=%v", err)
 			// 不返回错误，因为tspan 不一定为空
 		}
-		log.Debugf("tspan=%s", tSpan.String())
+		// log.Debugf("tspan=%s", tSpan.String())
 		log.Debugf("TransactionId=%s  AppId=%s  AgentId=%s", tSpan.TransactionId, tSpan.AppId, tSpan.AgentId)
 
 		xID := xid(tSpan.TransactionId, tSpan.AppId, tSpan.AgentId)
@@ -86,7 +86,7 @@ func Handle(message []byte) (pts []*point.Point, category point.Category) {
 			//	return pts
 		}
 
-		log.Debugf("tspanChunk=%s", tSpanChunk.String())
+		// log.Debugf("tspanChunk=%s", tSpanChunk.String())
 		xID := xid(tSpanChunk.TransactionId, tSpanChunk.AppId, tSpanChunk.AgentId)
 		tid := getTidFromRedis(xID)
 
