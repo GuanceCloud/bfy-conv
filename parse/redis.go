@@ -78,10 +78,13 @@ type cacheItem struct {
 }
 
 func NewCache() *Cache {
-	return &Cache{
+	cache := &Cache{
 		data: make(map[string]cacheItem),
 		lock: sync.RWMutex{},
 	}
+
+	go cache.CleanupRoutine()
+	return cache
 }
 
 func (c *Cache) Set(key, value string) {

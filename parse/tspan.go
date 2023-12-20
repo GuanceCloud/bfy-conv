@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"github.com/GuanceCloud/bfy-conv/gen-go/span"
@@ -12,25 +13,20 @@ import (
 )
 
 func parseTSpan(buf []byte) (*span.TSpan, error) {
-	/*	transport := &thrift.TMemoryBuffer{
-			Buffer: bytes.NewBuffer(buf),
-		}
-		strict := false
-		protocol := thrift.NewTCompactProtocolConf(transport, &thrift.TConfiguration{
-			MaxMessageSize:     0,
-			MaxFrameSize:       0,
-			TBinaryStrictRead:  &strict,
-			TBinaryStrictWrite: &strict,
-		})
-		tSpan := span.NewTSpan()
-		ctx := context.Background()
-		err := tSpan.Read(ctx, protocol)*/
-
+	transport := &thrift.TMemoryBuffer{
+		Buffer: bytes.NewBuffer(buf),
+	}
+	strict := false
+	protocol := thrift.NewTCompactProtocolConf(transport, &thrift.TConfiguration{
+		MaxMessageSize:     0,
+		MaxFrameSize:       0,
+		TBinaryStrictRead:  &strict,
+		TBinaryStrictWrite: &strict,
+	})
 	tSpan := span.NewTSpan()
-	ctx, cel := context.WithTimeout(context.Background(), time.Second)
-	s := thrift.NewTDeserializer()
-	err := s.Read(ctx, tSpan, buf)
-	cel()
+	ctx, _ := context.WithTimeout(context.Background(), time.Second)
+	err := tSpan.Read(ctx, protocol)
+
 	return tSpan, err
 }
 
@@ -107,6 +103,7 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 		pt.Add([]byte("resource"), "unknown")
 		pt.AddTag([]byte("operation"), []byte("unknown"))
 	}
+	pt.AddTag([]byte("agentId"), []byte(tSpan.GetAgentId()))
 	pt.AddTag([]byte(projectKey), []byte(projectVal))
 	pt.AddTag([]byte("service"), []byte(tSpan.ApplicationName))
 	pt.AddTag([]byte("service_name"), []byte(serviceName(tSpan.ServiceType)))
