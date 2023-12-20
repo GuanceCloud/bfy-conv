@@ -11,7 +11,26 @@ import (
 	"time"
 )
 
-func Test_parseTSpan(t *testing.T) {
+// go test -benchmem -run=^$  -bench ^BenchmarkParseTSpan$ gitlab.jiagouyun.com/cloudcare-tools/datakit/internal/plugins/inputs/ddtrace -memprofile memprofile.out -benchtime=100x
+
+func BenchmarkParseTSpan(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		buf := mock.GetKafkaSpanByte()
+		tspan, err := parseTSpan(buf[4:])
+		if err != nil {
+			b.Log(err)
+		}
+		if tspan != nil {
+
+		}
+	}
+	/*
+		BenchmarkParseTSpan-8   	   12538	     95009 ns/op
+		BenchmarkParseTSpan-8   	   12655	     91711 ns/op
+	*/
+}
+
+func Test_parseTSpanV2(t *testing.T) {
 	buf := mock.GetKafkaSpanByte()
 	tspan, err := parseTSpan(buf[4:])
 	if err != nil {
