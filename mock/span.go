@@ -83,11 +83,6 @@ func GetKafkaSpanByte() []byte {
 	buf := make([]byte, 0)
 	buf = append(buf, 239, 16, 0, 40)
 	buf = append(buf, serializedData...)
-	fmt.Println()
-	for i := 0; i < 20; i++ {
-		fmt.Printf(" %d, ", buf[i])
-	}
-	fmt.Println()
 
 	return buf
 }
