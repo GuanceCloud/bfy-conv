@@ -56,6 +56,10 @@ struct TSpan {
   50: optional i64 threadId
   51: optional string threadName
   52: optional bool hasNextCall
+
+  53: optional string traceparent
+  54: optional string tracestate
+  55: optional string parentId = "0000000000000000"
 }
 
 struct TSpanChunk {
@@ -85,6 +89,7 @@ struct TSpanChunk {
   17: optional string userId
   18: optional string sessionId
   19: optional i64 startTime
+  20: optional string traceparent
 }
 
 struct TSpanEvent {

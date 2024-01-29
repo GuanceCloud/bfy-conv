@@ -1,11 +1,6 @@
 package parse
 
-import (
-	"github.com/gomodule/redigo/redis"
-	"sync"
-	"time"
-)
-
+/*
 //var c1 redis.Conn
 var pool *redis.Pool
 var localCache *Cache
@@ -66,6 +61,7 @@ func RedigoSet(key, val string) {
 
 	localCache.Set(key, val)
 }
+
 
 type Cache struct {
 	data map[string]cacheItem
@@ -132,3 +128,5 @@ func (c *Cache) CleanupRoutine() {
 		}
 	}
 }
+
+*/

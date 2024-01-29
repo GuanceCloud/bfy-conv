@@ -14,7 +14,6 @@ import (
 )
 
 var log *logger.Logger
-var HeaderKey = "x-b3-traceid"
 var appFilter *AppFilter
 var SkipSpanChunk = true
 
@@ -66,15 +65,7 @@ func Handle(message []byte) (pts []*point.Point, category point.Category) {
 		log.Debugf("TransactionId=%s  AppId=%s  AgentId=%s", tSpan.TransactionId, tSpan.AppId, tSpan.AgentId)
 
 		xID := xid(tSpan.TransactionId, tSpan.AppId, tSpan.AgentId)
-		tid := getTidFromRedis(xID)
-		if tid == "" {
-			tid = getTidFromHeader(tSpan.GetHttpRequestHeader(), HeaderKey, xID)
-		}
-
-		if tid == "" {
-			tid = xID
-		}
-		pts = tSpanToPoint(tSpan, tid, xID)
+		pts = tSpanToPoint(tSpan, xID)
 		category = point.Tracing
 	case 70:
 		if SkipSpanChunk {
@@ -88,13 +79,13 @@ func Handle(message []byte) (pts []*point.Point, category point.Category) {
 
 		// log.Debugf("tspanChunk=%s", tSpanChunk.String())
 		xID := xid(tSpanChunk.TransactionId, tSpanChunk.AppId, tSpanChunk.AgentId)
-		tid := getTidFromRedis(xID)
+		/* tid := getTidFromRedis(xID)
 
 		if tid == "" {
 			tid = xID
-		}
+		}*/
 
-		pts = tSpanChunkToPoint(tSpanChunk, tid, xID)
+		pts = tSpanChunkToPoint(tSpanChunk, xID)
 		category = point.Tracing
 	case 56:
 		agentStat, err := parseAgentStatBatch(message[4:])
@@ -143,7 +134,7 @@ func Handle(message []byte) (pts []*point.Point, category point.Category) {
 func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	pt := &point.Point{}
 	pt.SetName("kafka-bfy")
-	pt.Add("span_id", strconv.FormatInt(GetRandomWithAll(), 10))
+	pt.Add("span_id", strconv.FormatInt(GetRandomWithAll(), 16))
 
 	d := (event.StartElapsed + event.EndElapsed) * 1e3 // 不乘
 	if d < 0 {
@@ -226,12 +217,12 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 
 	if event.IsSetAnnotations() {
 		for _, ann := range event.Annotations {
-			pt.AddTag(("key" + strconv.Itoa(int(ann.Key))), (ann.GetValue().String()))
+			pt.AddTag("key"+strconv.Itoa(int(ann.Key)), (ann.GetValue().String()))
 		}
 	}
 	jsonBody, err := json.Marshal(event)
 	if err == nil {
-		pt.Add(("message"), string(jsonBody))
+		pt.Add("message", string(jsonBody))
 	}
 	return pt
 }
@@ -248,7 +239,7 @@ func parseTSpanChunk(buf []byte) (*span.TSpanChunk, error) {
 	return tSpanChunk, err
 }
 
-func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionID string) (pts []*point.Point) {
+func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, transactionID string) (pts []*point.Point) {
 	if tSpanChunk == nil {
 		return
 	}
@@ -282,15 +273,16 @@ func tSpanChunkToPoint(tSpanChunk *span.TSpanChunk, traceID string, transactionI
 	} else {
 		log.Warnf("tspanchunk starttime is null")
 	}
-
+	traceParent := tSpanChunk.GetTraceparent()
 	for _, event := range tSpanChunk.SpanEventList {
+		traceID, spanID := getTraceIDAndSpanIDFromW3C(traceParent)
 		eventPt := ptdecodeEvent(event)
 		if eventPt == nil {
 			continue
 		}
 		// eventPt.AddTag()
 		eventPt.Add("trace_id", traceID)
-		eventPt.Add("parent_id", strconv.FormatInt(tSpanChunk.SpanId, 10))
+		eventPt.Add("parent_id", parentIDToDK(spanID))
 		eventPt.Add("start", startTime+int64(event.StartElapsed)*1e3)
 
 		if eventPt.GetTag("service") == "" {

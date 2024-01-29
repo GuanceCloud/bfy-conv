@@ -68,6 +68,9 @@ var _ = regexp.MatchString
 //  - ThreadId
 //  - ThreadName
 //  - HasNextCall
+//  - Traceparent
+//  - Tracestate
+//  - ParentId
 type TSpan struct {
   AgentId string `thrift:"agentId,1" db:"agentId" json:"agentId"`
   ApplicationName string `thrift:"applicationName,2" db:"applicationName" json:"applicationName"`
@@ -116,11 +119,16 @@ type TSpan struct {
   ThreadId *int64 `thrift:"threadId,50" db:"threadId" json:"threadId,omitempty"`
   ThreadName *string `thrift:"threadName,51" db:"threadName" json:"threadName,omitempty"`
   HasNextCall *bool `thrift:"hasNextCall,52" db:"hasNextCall" json:"hasNextCall,omitempty"`
+  Traceparent *string `thrift:"traceparent,53" db:"traceparent" json:"traceparent,omitempty"`
+  Tracestate *string `thrift:"tracestate,54" db:"tracestate" json:"tracestate,omitempty"`
+  ParentId string `thrift:"parentId,55" db:"parentId" json:"parentId"`
 }
 
 func NewTSpan() *TSpan {
   return &TSpan{
 ParentSpanId: -1,
+
+ParentId: "0000000000000000",
 }
 }
 
@@ -385,6 +393,25 @@ func (p *TSpan) GetHasNextCall() bool {
   }
 return *p.HasNextCall
 }
+var TSpan_Traceparent_DEFAULT string
+func (p *TSpan) GetTraceparent() string {
+  if !p.IsSetTraceparent() {
+    return TSpan_Traceparent_DEFAULT
+  }
+return *p.Traceparent
+}
+var TSpan_Tracestate_DEFAULT string
+func (p *TSpan) GetTracestate() string {
+  if !p.IsSetTracestate() {
+    return TSpan_Tracestate_DEFAULT
+  }
+return *p.Tracestate
+}
+var TSpan_ParentId_DEFAULT string = "0000000000000000"
+
+func (p *TSpan) GetParentId() string {
+  return p.ParentId
+}
 func (p *TSpan) IsSetParentSpanId() bool {
   return p.ParentSpanId != TSpan_ParentSpanId_DEFAULT
 }
@@ -515,6 +542,18 @@ func (p *TSpan) IsSetThreadName() bool {
 
 func (p *TSpan) IsSetHasNextCall() bool {
   return p.HasNextCall != nil
+}
+
+func (p *TSpan) IsSetTraceparent() bool {
+  return p.Traceparent != nil
+}
+
+func (p *TSpan) IsSetTracestate() bool {
+  return p.Tracestate != nil
+}
+
+func (p *TSpan) IsSetParentId() bool {
+  return p.ParentId != TSpan_ParentId_DEFAULT
 }
 
 func (p *TSpan) Read(ctx context.Context, iprot thrift.TProtocol) error {
@@ -960,6 +999,36 @@ func (p *TSpan) Read(ctx context.Context, iprot thrift.TProtocol) error {
           return err
         }
       }
+    case 53:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField53(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 54:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField54(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 55:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField55(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
     default:
       if err := iprot.Skip(ctx, fieldTypeId); err != nil {
         return err
@@ -1388,6 +1457,33 @@ func (p *TSpan)  ReadField52(ctx context.Context, iprot thrift.TProtocol) error 
   return nil
 }
 
+func (p *TSpan)  ReadField53(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 53: ", err)
+} else {
+  p.Traceparent = &v
+}
+  return nil
+}
+
+func (p *TSpan)  ReadField54(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 54: ", err)
+} else {
+  p.Tracestate = &v
+}
+  return nil
+}
+
+func (p *TSpan)  ReadField55(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 55: ", err)
+} else {
+  p.ParentId = v
+}
+  return nil
+}
+
 func (p *TSpan) Write(ctx context.Context, oprot thrift.TProtocol) error {
   if err := oprot.WriteStructBegin(ctx, "TSpan"); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
@@ -1435,6 +1531,9 @@ func (p *TSpan) Write(ctx context.Context, oprot thrift.TProtocol) error {
     if err := p.writeField50(ctx, oprot); err != nil { return err }
     if err := p.writeField51(ctx, oprot); err != nil { return err }
     if err := p.writeField52(ctx, oprot); err != nil { return err }
+    if err := p.writeField53(ctx, oprot); err != nil { return err }
+    if err := p.writeField54(ctx, oprot); err != nil { return err }
+    if err := p.writeField55(ctx, oprot); err != nil { return err }
   }
   if err := oprot.WriteFieldStop(ctx); err != nil {
     return thrift.PrependError("write field stop error: ", err) }
@@ -1958,6 +2057,42 @@ func (p *TSpan) writeField52(ctx context.Context, oprot thrift.TProtocol) (err e
   return err
 }
 
+func (p *TSpan) writeField53(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if p.IsSetTraceparent() {
+    if err := oprot.WriteFieldBegin(ctx, "traceparent", thrift.STRING, 53); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 53:traceparent: ", p), err) }
+    if err := oprot.WriteString(ctx, string(*p.Traceparent)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.traceparent (53) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(ctx); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 53:traceparent: ", p), err) }
+  }
+  return err
+}
+
+func (p *TSpan) writeField54(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if p.IsSetTracestate() {
+    if err := oprot.WriteFieldBegin(ctx, "tracestate", thrift.STRING, 54); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 54:tracestate: ", p), err) }
+    if err := oprot.WriteString(ctx, string(*p.Tracestate)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.tracestate (54) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(ctx); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 54:tracestate: ", p), err) }
+  }
+  return err
+}
+
+func (p *TSpan) writeField55(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if p.IsSetParentId() {
+    if err := oprot.WriteFieldBegin(ctx, "parentId", thrift.STRING, 55); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 55:parentId: ", p), err) }
+    if err := oprot.WriteString(ctx, string(p.ParentId)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.parentId (55) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(ctx); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 55:parentId: ", p), err) }
+  }
+  return err
+}
+
 func (p *TSpan) Equals(other *TSpan) bool {
   if p == other {
     return true
@@ -2150,6 +2285,19 @@ func (p *TSpan) Equals(other *TSpan) bool {
     }
     if (*p.HasNextCall) != (*other.HasNextCall) { return false }
   }
+  if p.Traceparent != other.Traceparent {
+    if p.Traceparent == nil || other.Traceparent == nil {
+      return false
+    }
+    if (*p.Traceparent) != (*other.Traceparent) { return false }
+  }
+  if p.Tracestate != other.Tracestate {
+    if p.Tracestate == nil || other.Tracestate == nil {
+      return false
+    }
+    if (*p.Tracestate) != (*other.Tracestate) { return false }
+  }
+  if p.ParentId != other.ParentId { return false }
   return true
 }
 
@@ -2181,6 +2329,7 @@ func (p *TSpan) Validate() error {
 //  - UserId
 //  - SessionId
 //  - StartTime
+//  - Traceparent
 type TSpanChunk struct {
   AgentId string `thrift:"agentId,1" db:"agentId" json:"agentId"`
   ApplicationName string `thrift:"applicationName,2" db:"applicationName" json:"applicationName"`
@@ -2201,6 +2350,7 @@ type TSpanChunk struct {
   UserId *string `thrift:"userId,17" db:"userId" json:"userId,omitempty"`
   SessionId *string `thrift:"sessionId,18" db:"sessionId" json:"sessionId,omitempty"`
   StartTime *int64 `thrift:"startTime,19" db:"startTime" json:"startTime,omitempty"`
+  Traceparent *string `thrift:"traceparent,20" db:"traceparent" json:"traceparent,omitempty"`
 }
 
 func NewTSpanChunk() *TSpanChunk {
@@ -2296,6 +2446,13 @@ func (p *TSpanChunk) GetStartTime() int64 {
   }
 return *p.StartTime
 }
+var TSpanChunk_Traceparent_DEFAULT string
+func (p *TSpanChunk) GetTraceparent() string {
+  if !p.IsSetTraceparent() {
+    return TSpanChunk_Traceparent_DEFAULT
+  }
+return *p.Traceparent
+}
 func (p *TSpanChunk) IsSetEndPoint() bool {
   return p.EndPoint != nil
 }
@@ -2322,6 +2479,10 @@ func (p *TSpanChunk) IsSetSessionId() bool {
 
 func (p *TSpanChunk) IsSetStartTime() bool {
   return p.StartTime != nil
+}
+
+func (p *TSpanChunk) IsSetTraceparent() bool {
+  return p.Traceparent != nil
 }
 
 func (p *TSpanChunk) Read(ctx context.Context, iprot thrift.TProtocol) error {
@@ -2500,6 +2661,16 @@ func (p *TSpanChunk) Read(ctx context.Context, iprot thrift.TProtocol) error {
     case 19:
       if fieldTypeId == thrift.I64 {
         if err := p.ReadField19(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 20:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField20(ctx, iprot); err != nil {
           return err
         }
       } else {
@@ -2690,6 +2861,15 @@ func (p *TSpanChunk)  ReadField19(ctx context.Context, iprot thrift.TProtocol) e
   return nil
 }
 
+func (p *TSpanChunk)  ReadField20(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 20: ", err)
+} else {
+  p.Traceparent = &v
+}
+  return nil
+}
+
 func (p *TSpanChunk) Write(ctx context.Context, oprot thrift.TProtocol) error {
   if err := oprot.WriteStructBegin(ctx, "TSpanChunk"); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
@@ -2711,6 +2891,7 @@ func (p *TSpanChunk) Write(ctx context.Context, oprot thrift.TProtocol) error {
     if err := p.writeField17(ctx, oprot); err != nil { return err }
     if err := p.writeField18(ctx, oprot); err != nil { return err }
     if err := p.writeField19(ctx, oprot); err != nil { return err }
+    if err := p.writeField20(ctx, oprot); err != nil { return err }
   }
   if err := oprot.WriteFieldStop(ctx); err != nil {
     return thrift.PrependError("write field stop error: ", err) }
@@ -2912,6 +3093,18 @@ func (p *TSpanChunk) writeField19(ctx context.Context, oprot thrift.TProtocol) (
   return err
 }
 
+func (p *TSpanChunk) writeField20(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if p.IsSetTraceparent() {
+    if err := oprot.WriteFieldBegin(ctx, "traceparent", thrift.STRING, 20); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 20:traceparent: ", p), err) }
+    if err := oprot.WriteString(ctx, string(*p.Traceparent)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.traceparent (20) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(ctx); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 20:traceparent: ", p), err) }
+  }
+  return err
+}
+
 func (p *TSpanChunk) Equals(other *TSpanChunk) bool {
   if p == other {
     return true
@@ -2973,6 +3166,12 @@ func (p *TSpanChunk) Equals(other *TSpanChunk) bool {
       return false
     }
     if (*p.StartTime) != (*other.StartTime) { return false }
+  }
+  if p.Traceparent != other.Traceparent {
+    if p.Traceparent == nil || other.Traceparent == nil {
+      return false
+    }
+    if (*p.Traceparent) != (*other.Traceparent) { return false }
   }
   return true
 }

@@ -31,7 +31,7 @@ func parseTSpan(buf []byte) (*span.TSpan, error) {
 	return tSpan, err
 }
 
-func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point {
+func tSpanToPoint(tSpan *span.TSpan, xid string) []*point.Point {
 	pts := make([]*point.Point, 0)
 	appName := tSpan.ApplicationName
 	projectKey := "project"
@@ -53,14 +53,15 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 			return pts
 		}
 	}
+	traceID, spanID := getTraceIDAndSpanIDFromW3C(tSpan.GetTraceparent())
 	for _, event := range tSpan.SpanEventList {
 		eventPt := ptdecodeEvent(event)
 		if eventPt == nil {
 			continue
 		}
 		// eventPt.AddTag()
-		eventPt.Add("trace_id", traceid)
-		eventPt.Add("parent_id", strconv.FormatInt(tSpan.SpanId, 10))
+		eventPt.Add("trace_id", traceID)
+		eventPt.Add("parent_id", spanID)
 		eventPt.Add("start", (tSpan.StartTime+int64(event.StartElapsed))*1e3)
 		if eventPt.GetTag("service") == "" {
 			eventPt.AddTag("service", tSpan.ApplicationName)
@@ -72,7 +73,7 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 		if projectVal != "" {
 			eventPt.AddTag(projectKey, projectVal)
 		}
-		eventPt.AddTag("transactionId", (xid))
+		eventPt.AddTag("transactionId", xid)
 		eventPt.SetTime(time.UnixMilli(tSpan.StartTime + int64(event.StartElapsed)))
 
 		pts = append(pts, eventPt)
@@ -80,13 +81,13 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 
 	pt := &point.Point{}
 	pt.SetName("kafka-bfy")
-	pt.Add("span_id", strconv.FormatInt(tSpan.SpanId, 10))
-	pt.Add("trace_id", traceid)
+	pt.Add("span_id", spanID)
+	pt.Add("trace_id", traceID)
 	pid := tSpan.ParentSpanId
 	if pid == 0 {
 		pid = 0
 	}
-	pt.Add("parent_id", strconv.FormatInt(pid, 10))
+	pt.Add("parent_id", parentIDToDK(tSpan.GetParentId()))
 	pt.Add("start", tSpan.StartTime*1e3)
 	pt.Add("duration", tSpan.Elapsed*1e3)
 	if tSpan.IsSetRPC() {
@@ -117,7 +118,12 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 	} else {
 		pt.AddTag("status", "ok")
 	}
-
+	if tSpan.GetTracestate() != "" {
+		states := getTraceState(tSpan.GetTracestate())
+		for k, v := range states {
+			pt.AddTag(k, v)
+		}
+	}
 	// requestBody 和 responseBody Headers 没有放进去时因为其中有敏感信息
 	if tSpan.IsSetHttpMethod() {
 		pt.AddTag("http_method", *tSpan.HttpMethod)
@@ -142,4 +148,43 @@ func tSpanToPoint(tSpan *span.TSpan, traceid string, xid string) []*point.Point 
 	pts = append(pts, pt)
 
 	return pts
+}
+
+func getTraceState(tracestate string) map[string]string {
+	traceTags := make(map[string]string)
+	kvs := strings.Split(tracestate, ",")
+	for _, kv := range kvs {
+		if len(kv) == 0 {
+			continue
+		}
+		strs := strings.Split(kv, "=")
+		if len(strs) == 2 {
+			traceTags[strs[0]] = strs[1]
+		}
+	}
+	return traceTags
+}
+
+func isSample(traceparent string) bool {
+	strs := strings.Split(traceparent, "-")
+	if len(strs) != 4 {
+		return true
+	}
+	return strs[3] == "01"
+}
+
+func getTraceIDAndSpanIDFromW3C(traceparent string) (string, string) {
+	strs := strings.Split(traceparent, "-")
+	if len(strs) != 4 {
+		return "no-trace-id", "0000000000000000"
+	}
+
+	return strs[1], strs[2]
+}
+
+func parentIDToDK(parentID string) string {
+	if parentID == "0000000000000000" {
+		return "0"
+	}
+	return parentID
 }

@@ -3,7 +3,6 @@ package parse
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"github.com/GuanceCloud/bfy-conv/gen-go/server"
 	"github.com/GuanceCloud/cliutils/point"
 	"github.com/apache/thrift/lib/go/thrift"
@@ -49,8 +48,6 @@ func statBatchToPoints(batch *server.TAgentStatBatch) (pts []*point.Point) {
 			return
 		}
 	}
-	// todo  appID 过滤
-	ip := findIPFromRedis(batch.GetAppId(), batch.GetAgentId())
 	// todo 添加 IP
 	agentID := batch.GetAgentId()
 
@@ -63,7 +60,6 @@ func statBatchToPoints(batch *server.TAgentStatBatch) (pts []*point.Point) {
 			cpukv = cpukv.Add("SystemCpuLoad", cpuLoad.GetSystemCpuLoad(), false, false).
 				Add("JvmCpuLoad", cpuLoad.GetJvmCpuLoad(), false, false).
 				AddTag("app_id", appID).
-				AddTag("ip", ip).
 				AddTag(projectKey, projectVal).
 				AddTag("agent_id", agentID)
 			pt := point.NewPointV2("agentStats-cpu", cpukv, opts...)
@@ -75,7 +71,6 @@ func statBatchToPoints(batch *server.TAgentStatBatch) (pts []*point.Point) {
 			var gckvs point.KVs
 			gckvs = gckvs.AddTag("app_id", appID).
 				AddTag("agent_id", agentID).
-				AddTag("ip", ip).
 				AddTag(projectKey, projectVal).
 				Add("JvmMemoryHeapUsed", gc.GetJvmMemoryHeapUsed(), false, false).
 				Add("JvmMemoryHeapMax", gc.GetJvmMemoryHeapMax(), false, false).
@@ -142,9 +137,6 @@ func parseAgentInfo(buf []byte) (*server.TAgentInfo, error) {
 	info := server.NewTAgentInfo()
 	ctx, _ := context.WithTimeout(context.Background(), time.Second)
 	err := info.Read(ctx, protocol)
-	if info != nil {
-		err = storeIPToRedis(info.GetAppId(), info.GetAgentId(), info.GetIP())
-	}
 	return info, err
 }
 
@@ -158,23 +150,4 @@ func parseAgentEvent(buf []byte) (*server.TAgentEvent, error) {
 	ctx := context.Background()
 	err := batch.Read(ctx, protocol)
 	return batch, err
-}
-
-func storeIPToRedis(appID, agentID string, ip string) error {
-	if pool != nil {
-		if agentID != "" && appID != "" && ip != "" {
-			RedigoSet(agentID+"|"+appID, ip)
-			return nil
-		}
-	} else {
-		return fmt.Errorf("redis conn is nil")
-	}
-	return nil
-}
-
-func findIPFromRedis(appID, agentID string) string {
-	if pool != nil {
-		return RedigoGet(agentID + "|" + appID)
-	}
-	return ""
 }

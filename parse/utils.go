@@ -99,6 +99,7 @@ func code(buf []byte) (int, error) {
 	return code, nil
 }
 
+/*
 func getTidFromHeader(header string, key string, xid string) string {
 	if header == "" {
 		return ""
@@ -126,7 +127,7 @@ func getTidFromRedis(xid string) string {
 
 	return traceID
 }
-
+*/
 func serviceName(serviceType int16) string {
 	if sts, ok := ServiceMaps[serviceType]; ok {
 		return sts[0]
