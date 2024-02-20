@@ -54,6 +54,12 @@ func tSpanToPoint(tSpan *span.TSpan, xid string) []*point.Point {
 		}
 	}
 	traceID, spanID := getTraceIDAndSpanIDFromW3C(tSpan.GetTraceparent())
+	if traceID == "" {
+		traceID = xid
+	}
+	if spanID == "" {
+		spanID = strconv.FormatInt(tSpan.SpanId, 10)
+	}
 	for _, event := range tSpan.SpanEventList {
 		eventPt := ptdecodeEvent(event)
 		if eventPt == nil {
@@ -176,7 +182,7 @@ func isSample(traceparent string) bool {
 func getTraceIDAndSpanIDFromW3C(traceparent string) (string, string) {
 	strs := strings.Split(traceparent, "-")
 	if len(strs) != 4 {
-		return "no-trace-id", "0000000000000000"
+		return "", ""
 	}
 
 	return strs[1], strs[2]
