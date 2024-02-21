@@ -13,7 +13,7 @@ func Test_tSpanToPoint(t *testing.T) {
 		return
 	}
 	appFilter = nil
-	pts := tSpanToPoint(tspan, "trace_id", "xxxx")
+	pts := tSpanToPoint(tspan, "xxxx")
 	if len(pts) == 0 {
 		t.Errorf("pts len ==0")
 		return
