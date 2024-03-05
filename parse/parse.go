@@ -62,7 +62,7 @@ func Handle(message []byte) (pts []*point.Point, category point.Category) {
 			// 不返回错误，因为tspan 不一定为空
 		}
 		// log.Debugf("tspan=%s", tSpan.String())
-		log.Debugf("TransactionId=%s  AppId=%s  AgentId=%s", tSpan.TransactionId, tSpan.AppId, tSpan.AgentId)
+		log.Debugf("TransactionId=%s  AppId=%s  AgentId=%s traceparent=%s tracestate=%s", tSpan.TransactionId, tSpan.AppId, tSpan.AgentId, tSpan.GetTraceparent(), tSpan.GetTracestate())
 
 		xID := xid(tSpan.TransactionId, tSpan.AppId, tSpan.AgentId)
 		pts = tSpanToPoint(tSpan, xID)

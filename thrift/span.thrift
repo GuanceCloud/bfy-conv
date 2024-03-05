@@ -129,6 +129,10 @@ struct TSpanEvent {
   81: optional string url;
   91: optional string method;
   92: optional string arguments;
+  93: optional bool isNoSQL;
+  94: optional string nosqlMethod;
+  95: optional bool isSql;
+  96: optional string sqlMethod;
 }
 
 struct TAnnotation {

@@ -3214,6 +3214,10 @@ func (p *TSpanChunk) Validate() error {
 //  - URL
 //  - Method
 //  - Arguments
+//  - IsNoSQL
+//  - NosqlMethod
+//  - IsSql
+//  - SqlMethod
 type TSpanEvent struct {
   // unused fields # 1 to 6
   SpanId *int64 `thrift:"spanId,7" db:"spanId" json:"spanId,omitempty"`
@@ -3252,6 +3256,10 @@ type TSpanEvent struct {
   // unused fields # 82 to 90
   Method *string `thrift:"method,91" db:"method" json:"method,omitempty"`
   Arguments *string `thrift:"arguments,92" db:"arguments" json:"arguments,omitempty"`
+  IsNoSQL *bool `thrift:"isNoSQL,93" db:"isNoSQL" json:"isNoSQL,omitempty"`
+  NosqlMethod *string `thrift:"nosqlMethod,94" db:"nosqlMethod" json:"nosqlMethod,omitempty"`
+  IsSql *bool `thrift:"isSql,95" db:"isSql" json:"isSql,omitempty"`
+  SqlMethod *string `thrift:"sqlMethod,96" db:"sqlMethod" json:"sqlMethod,omitempty"`
 }
 
 func NewTSpanEvent() *TSpanEvent {
@@ -3431,6 +3439,34 @@ func (p *TSpanEvent) GetArguments() string {
   }
 return *p.Arguments
 }
+var TSpanEvent_IsNoSQL_DEFAULT bool
+func (p *TSpanEvent) GetIsNoSQL() bool {
+  if !p.IsSetIsNoSQL() {
+    return TSpanEvent_IsNoSQL_DEFAULT
+  }
+return *p.IsNoSQL
+}
+var TSpanEvent_NosqlMethod_DEFAULT string
+func (p *TSpanEvent) GetNosqlMethod() string {
+  if !p.IsSetNosqlMethod() {
+    return TSpanEvent_NosqlMethod_DEFAULT
+  }
+return *p.NosqlMethod
+}
+var TSpanEvent_IsSql_DEFAULT bool
+func (p *TSpanEvent) GetIsSql() bool {
+  if !p.IsSetIsSql() {
+    return TSpanEvent_IsSql_DEFAULT
+  }
+return *p.IsSql
+}
+var TSpanEvent_SqlMethod_DEFAULT string
+func (p *TSpanEvent) GetSqlMethod() string {
+  if !p.IsSetSqlMethod() {
+    return TSpanEvent_SqlMethod_DEFAULT
+  }
+return *p.SqlMethod
+}
 func (p *TSpanEvent) IsSetSpanId() bool {
   return p.SpanId != nil
 }
@@ -3521,6 +3557,22 @@ func (p *TSpanEvent) IsSetMethod() bool {
 
 func (p *TSpanEvent) IsSetArguments() bool {
   return p.Arguments != nil
+}
+
+func (p *TSpanEvent) IsSetIsNoSQL() bool {
+  return p.IsNoSQL != nil
+}
+
+func (p *TSpanEvent) IsSetNosqlMethod() bool {
+  return p.NosqlMethod != nil
+}
+
+func (p *TSpanEvent) IsSetIsSql() bool {
+  return p.IsSql != nil
+}
+
+func (p *TSpanEvent) IsSetSqlMethod() bool {
+  return p.SqlMethod != nil
 }
 
 func (p *TSpanEvent) Read(ctx context.Context, iprot thrift.TProtocol) error {
@@ -3806,6 +3858,46 @@ func (p *TSpanEvent) Read(ctx context.Context, iprot thrift.TProtocol) error {
           return err
         }
       }
+    case 93:
+      if fieldTypeId == thrift.BOOL {
+        if err := p.ReadField93(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 94:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField94(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 95:
+      if fieldTypeId == thrift.BOOL {
+        if err := p.ReadField95(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 96:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField96(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
     default:
       if err := iprot.Skip(ctx, fieldTypeId); err != nil {
         return err
@@ -4073,6 +4165,42 @@ func (p *TSpanEvent)  ReadField92(ctx context.Context, iprot thrift.TProtocol) e
   return nil
 }
 
+func (p *TSpanEvent)  ReadField93(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadBool(ctx); err != nil {
+  return thrift.PrependError("error reading field 93: ", err)
+} else {
+  p.IsNoSQL = &v
+}
+  return nil
+}
+
+func (p *TSpanEvent)  ReadField94(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 94: ", err)
+} else {
+  p.NosqlMethod = &v
+}
+  return nil
+}
+
+func (p *TSpanEvent)  ReadField95(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadBool(ctx); err != nil {
+  return thrift.PrependError("error reading field 95: ", err)
+} else {
+  p.IsSql = &v
+}
+  return nil
+}
+
+func (p *TSpanEvent)  ReadField96(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 96: ", err)
+} else {
+  p.SqlMethod = &v
+}
+  return nil
+}
+
 func (p *TSpanEvent) Write(ctx context.Context, oprot thrift.TProtocol) error {
   if err := oprot.WriteStructBegin(ctx, "TSpanEvent"); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
@@ -4104,6 +4232,10 @@ func (p *TSpanEvent) Write(ctx context.Context, oprot thrift.TProtocol) error {
     if err := p.writeField81(ctx, oprot); err != nil { return err }
     if err := p.writeField91(ctx, oprot); err != nil { return err }
     if err := p.writeField92(ctx, oprot); err != nil { return err }
+    if err := p.writeField93(ctx, oprot); err != nil { return err }
+    if err := p.writeField94(ctx, oprot); err != nil { return err }
+    if err := p.writeField95(ctx, oprot); err != nil { return err }
+    if err := p.writeField96(ctx, oprot); err != nil { return err }
   }
   if err := oprot.WriteFieldStop(ctx); err != nil {
     return thrift.PrependError("write field stop error: ", err) }
@@ -4439,6 +4571,54 @@ func (p *TSpanEvent) writeField92(ctx context.Context, oprot thrift.TProtocol) (
   return err
 }
 
+func (p *TSpanEvent) writeField93(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if p.IsSetIsNoSQL() {
+    if err := oprot.WriteFieldBegin(ctx, "isNoSQL", thrift.BOOL, 93); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 93:isNoSQL: ", p), err) }
+    if err := oprot.WriteBool(ctx, bool(*p.IsNoSQL)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.isNoSQL (93) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(ctx); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 93:isNoSQL: ", p), err) }
+  }
+  return err
+}
+
+func (p *TSpanEvent) writeField94(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if p.IsSetNosqlMethod() {
+    if err := oprot.WriteFieldBegin(ctx, "nosqlMethod", thrift.STRING, 94); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 94:nosqlMethod: ", p), err) }
+    if err := oprot.WriteString(ctx, string(*p.NosqlMethod)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.nosqlMethod (94) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(ctx); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 94:nosqlMethod: ", p), err) }
+  }
+  return err
+}
+
+func (p *TSpanEvent) writeField95(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if p.IsSetIsSql() {
+    if err := oprot.WriteFieldBegin(ctx, "isSql", thrift.BOOL, 95); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 95:isSql: ", p), err) }
+    if err := oprot.WriteBool(ctx, bool(*p.IsSql)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.isSql (95) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(ctx); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 95:isSql: ", p), err) }
+  }
+  return err
+}
+
+func (p *TSpanEvent) writeField96(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if p.IsSetSqlMethod() {
+    if err := oprot.WriteFieldBegin(ctx, "sqlMethod", thrift.STRING, 96); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 96:sqlMethod: ", p), err) }
+    if err := oprot.WriteString(ctx, string(*p.SqlMethod)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.sqlMethod (96) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(ctx); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 96:sqlMethod: ", p), err) }
+  }
+  return err
+}
+
 func (p *TSpanEvent) Equals(other *TSpanEvent) bool {
   if p == other {
     return true
@@ -4560,6 +4740,30 @@ func (p *TSpanEvent) Equals(other *TSpanEvent) bool {
       return false
     }
     if (*p.Arguments) != (*other.Arguments) { return false }
+  }
+  if p.IsNoSQL != other.IsNoSQL {
+    if p.IsNoSQL == nil || other.IsNoSQL == nil {
+      return false
+    }
+    if (*p.IsNoSQL) != (*other.IsNoSQL) { return false }
+  }
+  if p.NosqlMethod != other.NosqlMethod {
+    if p.NosqlMethod == nil || other.NosqlMethod == nil {
+      return false
+    }
+    if (*p.NosqlMethod) != (*other.NosqlMethod) { return false }
+  }
+  if p.IsSql != other.IsSql {
+    if p.IsSql == nil || other.IsSql == nil {
+      return false
+    }
+    if (*p.IsSql) != (*other.IsSql) { return false }
+  }
+  if p.SqlMethod != other.SqlMethod {
+    if p.SqlMethod == nil || other.SqlMethod == nil {
+      return false
+    }
+    if (*p.SqlMethod) != (*other.SqlMethod) { return false }
   }
   return true
 }
