@@ -1,4 +1,4 @@
-package parse
+package utils
 
 import (
 	"encoding/binary"
@@ -11,7 +11,7 @@ import (
 	"unicode/utf8"
 )
 
-func xid(buf []byte, appid string, agent string) string {
+func Xid(buf []byte, appid string, agent string) string {
 	i := 1
 	appid_size, offset := binary.Varint(buf[i:])
 
@@ -64,17 +64,15 @@ func xid(buf []byte, appid string, agent string) string {
 	}, "^")
 }
 
-func code(buf []byte) (int, error) {
+func Code(buf []byte) (int, error) {
 	// 检查协议长度必须为4
 	if len(buf) <= 4 {
-		log.Debugf("Invalid Protocol Length: %d\n", len(buf))
 		return -1, errors.New("invalid Protocol Length")
 	}
 
 	// 检查协议签名必须为0xEF
 	signature := buf[0]
 	if signature != 0xEF {
-		log.Debugf("Invalid Protocol Signature: %x\n", signature)
 		return -1, errors.New("invalid Protocol Signature")
 	}
 
@@ -92,7 +90,6 @@ func code(buf []byte) (int, error) {
 	} else if buf[2] == 0 && buf[3] == 50 {
 		code = 50
 	} else {
-		log.Debugf("Invalid Protocol Code: %d \n", buf[3])
 		return -1, errors.New("invalid Protocol Code")
 	}
 
@@ -128,14 +125,15 @@ func getTidFromRedis(xid string) string {
 	return traceID
 }
 */
-func serviceName(serviceType int16) string {
+
+func ServiceName(serviceType int16) string {
 	if sts, ok := ServiceMaps[serviceType]; ok {
 		return sts[0]
 	}
 	return "Unknown"
 }
 
-func sourceType(serviceType int16) string {
+func SourceType(serviceType int16) string {
 	if sts, ok := ServiceMaps[serviceType]; ok {
 		return sts[1]
 	}

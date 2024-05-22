@@ -1,6 +1,9 @@
-package parse
+package utils
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 var ServiceTypeMap = map[int16]*serviceType{}
 
@@ -23,7 +26,7 @@ func ParseServiceType() {
 	sts := make(map[int16]*serviceType)
 	err := json.Unmarshal([]byte(serviceMap), &sts)
 	if err != nil {
-		log.Error(err)
+		fmt.Println(err)
 	} else {
 		ServiceTypeMap = sts
 	}

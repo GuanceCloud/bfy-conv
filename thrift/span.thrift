@@ -178,3 +178,27 @@ struct TSql {
   12: i64 startTime
   13: i64 dur
 }
+
+struct TApiMetaData {
+  1: string agentId
+  2: i64 agentStartTime
+
+  3: optional string appkey
+
+  4: i32 apiId,
+  5: string apiInfo,
+  6: optional i32 line,
+  7: string appId,
+  8: string tenant,
+
+  10: optional i32 type,
+}
+
+
+struct TSqlMetaData {
+  1: string appkey
+  2: string template
+  3: string hash
+  4: string appId
+  5: string tenant
+}

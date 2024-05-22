@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/GuanceCloud/bfy-conv/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -73,7 +74,7 @@ func tSpanToPoint(tSpan *span.TSpan, xid string) []*point.Point {
 			eventPt.AddTag("service", tSpan.ApplicationName)
 		}
 
-		eventPt.AddTag("source_type", sourceType(event.ServiceType))
+		eventPt.AddTag("source_type", utils.SourceType(event.ServiceType))
 		eventPt.AddTag("service_type", "bfy-tspan")
 		eventPt.AddTag("process_time", time.Now().Format("2006-01-02 15:04:05.000"))
 		if projectVal != "" {
@@ -99,7 +100,7 @@ func tSpanToPoint(tSpan *span.TSpan, xid string) []*point.Point {
 	if tSpan.IsSetRPC() {
 		rpc := tSpan.GetRPC()
 		pt.Add("resource", rpc)
-		pt.AddTag("operation", (rpc))
+		pt.AddTag("operation", rpc)
 		index := strings.Index(rpc, "?")
 		if index != -1 {
 			route := rpc[:index]
@@ -114,8 +115,8 @@ func tSpanToPoint(tSpan *span.TSpan, xid string) []*point.Point {
 	pt.AddTag("agentId", tSpan.GetAgentId())
 	pt.AddTag(projectKey, projectVal)
 	pt.AddTag("service", tSpan.ApplicationName)
-	pt.AddTag("service_name", serviceName(tSpan.ServiceType))
-	pt.AddTag("source_type", sourceType(tSpan.ServiceType))
+	pt.AddTag("service_name", utils.ServiceName(tSpan.ServiceType))
+	pt.AddTag("source_type", utils.SourceType(tSpan.ServiceType))
 	pt.AddTag("transactionId", xid)
 	pt.AddTag("original_type", "Span")
 	if tSpan.ExceptionInfo != nil && tSpan.Err != nil && *tSpan.Err != 0 {

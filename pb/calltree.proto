@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package callTree;
+
+option go_package="/callTree";
+
+message CallEvent {
+  string id = 1;
+  string span_id = 2;
+   int32 sequence = 3;
+   int32 start_elapsed = 4;
+   int32 end_elapsed = 5;
+   string rpc = 6;
+   int32 service_type = 7;
+   string end_point = 8;
+   int32 depth = 9;
+   int64 next_span_id = 10;
+   string destination_id = 11;
+   int32 api_id = 12;
+   string exception_class_name = 13;
+   int32 async_id = 14;
+   int32 next_async_id = 15;
+   int32 async_sequence = 16;
+   string api_info = 17;
+   int32 line_number = 18;
+   int32 retcode = 19;
+   string request_headers = 20;
+   string request_body = 21;
+   string response_body = 22;
+   uint32 status = 23;
+   string url = 24;
+   string method = 25;
+   string arguments = 26;
+   string ps = 27;
+  string tenant = 28;
+  string appid = 29;
+  string appsysid = 30;
+  string agent_id = 31;
+   string agent_ip = 32;
+   string trxid = 33;
+  int64 boot_time = 34;
+  bool has_exception = 35;
+   string exception_id = 36;
+   int32 app_service_type = 37;
+   string user_id = 38;
+   string session_id = 39;
+  int64 ts = 40;
+  bool from_web_and_mobile = 41;
+   string trace_id = 42;
+   bool is_otel = 43;
+   string event_cid = 44;
+}
+
+message CallTree {
+  repeated CallEvent callevents = 1;
+}

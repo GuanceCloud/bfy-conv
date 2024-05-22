@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/GuanceCloud/bfy-conv/gen-go/apptrace"
 	"github.com/GuanceCloud/bfy-conv/mock"
+	"github.com/GuanceCloud/bfy-conv/utils"
 	"github.com/IBM/sarama"
 	"github.com/apache/thrift/lib/go/thrift"
 	"testing"
@@ -42,9 +43,9 @@ func Test_parseTSpanV2(t *testing.T) {
 }
 
 func TestParseServiceType(t *testing.T) {
-	ParseServiceType()
+	utils.ParseServiceType()
 
-	fmt.Println(len(ServiceTypeMap))
+	fmt.Println(len(utils.ServiceTypeMap))
 }
 
 func TestSendMetricToKafka(t *testing.T) {

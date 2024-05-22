@@ -1,4 +1,4 @@
-package parse
+package utils
 
 var serviceMap = `{
   "2": {

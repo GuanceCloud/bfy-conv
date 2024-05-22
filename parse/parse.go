@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/GuanceCloud/bfy-conv/gen-go/span"
+	"github.com/GuanceCloud/bfy-conv/utils"
 	"github.com/GuanceCloud/cliutils/logger"
 	"github.com/GuanceCloud/cliutils/point"
 	"github.com/apache/thrift/lib/go/thrift"
@@ -13,7 +14,7 @@ import (
 	"time"
 )
 
-var log *logger.Logger
+var log = logger.DefaultSLogger("bfy")
 var appFilter *AppFilter
 var SkipSpanChunk = true
 
@@ -44,7 +45,7 @@ func InitAppFilter(apps map[string]string) {
 func Handle(message []byte) (pts []*point.Point, category point.Category) {
 	pts = make([]*point.Point, 0)
 	// 判断类型
-	msgType, err := code(message)
+	msgType, err := utils.Code(message)
 	if err != nil {
 		log.Warnf("code err %v", err)
 		return
@@ -64,7 +65,7 @@ func Handle(message []byte) (pts []*point.Point, category point.Category) {
 		// log.Debugf("tspan=%s", tSpan.String())
 		log.Debugf("TransactionId=%s  AppId=%s  AgentId=%s traceparent=%s tracestate=%s", tSpan.TransactionId, tSpan.AppId, tSpan.AgentId, tSpan.GetTraceparent(), tSpan.GetTracestate())
 
-		xID := xid(tSpan.TransactionId, tSpan.AppId, tSpan.AgentId)
+		xID := utils.Xid(tSpan.TransactionId, tSpan.AppId, tSpan.AgentId)
 		pts = tSpanToPoint(tSpan, xID)
 		category = point.Tracing
 	case 70:
@@ -78,7 +79,7 @@ func Handle(message []byte) (pts []*point.Point, category point.Category) {
 		}
 
 		// log.Debugf("tspanChunk=%s", tSpanChunk.String())
-		xID := xid(tSpanChunk.TransactionId, tSpanChunk.AppId, tSpanChunk.AgentId)
+		xID := utils.Xid(tSpanChunk.TransactionId, tSpanChunk.AppId, tSpanChunk.AgentId)
 		/* tid := getTidFromRedis(xID)
 
 		if tid == "" {
@@ -134,7 +135,7 @@ func Handle(message []byte) (pts []*point.Point, category point.Category) {
 func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	pt := &point.Point{}
 	pt.SetName("kafka-bfy")
-	pt.Add("span_id", strconv.FormatInt(GetRandomWithAll(), 16))
+	pt.Add("span_id", strconv.FormatInt(utils.GetRandomWithAll(), 16))
 
 	d := (event.StartElapsed + event.EndElapsed) * 1e3 // 不乘
 	if d < 0 {
@@ -142,7 +143,7 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	}
 	pt.Add("duration", d)
 	resource := ""
-	if st, ok := ServiceTypeMap[event.ServiceType]; ok {
+	if st, ok := utils.ServiceTypeMap[event.ServiceType]; ok {
 		resource = st.Name
 
 		if st.IsQueue {

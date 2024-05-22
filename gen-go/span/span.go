@@ -6370,3 +6370,698 @@ func (p *TSql) String() string {
 func (p *TSql) Validate() error {
   return nil
 }
+// Attributes:
+//  - AgentId
+//  - AgentStartTime
+//  - Appkey
+//  - ApiId
+//  - ApiInfo
+//  - Line
+//  - AppId
+//  - Tenant
+//  - Type
+type TApiMetaData struct {
+  AgentId string `thrift:"agentId,1" db:"agentId" json:"agentId"`
+  AgentStartTime int64 `thrift:"agentStartTime,2" db:"agentStartTime" json:"agentStartTime"`
+  Appkey *string `thrift:"appkey,3" db:"appkey" json:"appkey,omitempty"`
+  ApiId int32 `thrift:"apiId,4" db:"apiId" json:"apiId"`
+  ApiInfo string `thrift:"apiInfo,5" db:"apiInfo" json:"apiInfo"`
+  Line *int32 `thrift:"line,6" db:"line" json:"line,omitempty"`
+  AppId string `thrift:"appId,7" db:"appId" json:"appId"`
+  Tenant string `thrift:"tenant,8" db:"tenant" json:"tenant"`
+  // unused field # 9
+  Type *int32 `thrift:"type,10" db:"type" json:"type,omitempty"`
+}
+
+func NewTApiMetaData() *TApiMetaData {
+  return &TApiMetaData{}
+}
+
+
+func (p *TApiMetaData) GetAgentId() string {
+  return p.AgentId
+}
+
+func (p *TApiMetaData) GetAgentStartTime() int64 {
+  return p.AgentStartTime
+}
+var TApiMetaData_Appkey_DEFAULT string
+func (p *TApiMetaData) GetAppkey() string {
+  if !p.IsSetAppkey() {
+    return TApiMetaData_Appkey_DEFAULT
+  }
+return *p.Appkey
+}
+
+func (p *TApiMetaData) GetApiId() int32 {
+  return p.ApiId
+}
+
+func (p *TApiMetaData) GetApiInfo() string {
+  return p.ApiInfo
+}
+var TApiMetaData_Line_DEFAULT int32
+func (p *TApiMetaData) GetLine() int32 {
+  if !p.IsSetLine() {
+    return TApiMetaData_Line_DEFAULT
+  }
+return *p.Line
+}
+
+func (p *TApiMetaData) GetAppId() string {
+  return p.AppId
+}
+
+func (p *TApiMetaData) GetTenant() string {
+  return p.Tenant
+}
+var TApiMetaData_Type_DEFAULT int32
+func (p *TApiMetaData) GetType() int32 {
+  if !p.IsSetType() {
+    return TApiMetaData_Type_DEFAULT
+  }
+return *p.Type
+}
+func (p *TApiMetaData) IsSetAppkey() bool {
+  return p.Appkey != nil
+}
+
+func (p *TApiMetaData) IsSetLine() bool {
+  return p.Line != nil
+}
+
+func (p *TApiMetaData) IsSetType() bool {
+  return p.Type != nil
+}
+
+func (p *TApiMetaData) Read(ctx context.Context, iprot thrift.TProtocol) error {
+  if _, err := iprot.ReadStructBegin(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
+  }
+
+
+  for {
+    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin(ctx)
+    if err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
+    }
+    if fieldTypeId == thrift.STOP { break; }
+    switch fieldId {
+    case 1:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField1(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 2:
+      if fieldTypeId == thrift.I64 {
+        if err := p.ReadField2(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 3:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField3(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 4:
+      if fieldTypeId == thrift.I32 {
+        if err := p.ReadField4(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 5:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField5(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 6:
+      if fieldTypeId == thrift.I32 {
+        if err := p.ReadField6(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 7:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField7(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 8:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField8(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 10:
+      if fieldTypeId == thrift.I32 {
+        if err := p.ReadField10(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    default:
+      if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+        return err
+      }
+    }
+    if err := iprot.ReadFieldEnd(ctx); err != nil {
+      return err
+    }
+  }
+  if err := iprot.ReadStructEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+  }
+  return nil
+}
+
+func (p *TApiMetaData)  ReadField1(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 1: ", err)
+} else {
+  p.AgentId = v
+}
+  return nil
+}
+
+func (p *TApiMetaData)  ReadField2(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadI64(ctx); err != nil {
+  return thrift.PrependError("error reading field 2: ", err)
+} else {
+  p.AgentStartTime = v
+}
+  return nil
+}
+
+func (p *TApiMetaData)  ReadField3(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 3: ", err)
+} else {
+  p.Appkey = &v
+}
+  return nil
+}
+
+func (p *TApiMetaData)  ReadField4(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadI32(ctx); err != nil {
+  return thrift.PrependError("error reading field 4: ", err)
+} else {
+  p.ApiId = v
+}
+  return nil
+}
+
+func (p *TApiMetaData)  ReadField5(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 5: ", err)
+} else {
+  p.ApiInfo = v
+}
+  return nil
+}
+
+func (p *TApiMetaData)  ReadField6(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadI32(ctx); err != nil {
+  return thrift.PrependError("error reading field 6: ", err)
+} else {
+  p.Line = &v
+}
+  return nil
+}
+
+func (p *TApiMetaData)  ReadField7(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 7: ", err)
+} else {
+  p.AppId = v
+}
+  return nil
+}
+
+func (p *TApiMetaData)  ReadField8(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 8: ", err)
+} else {
+  p.Tenant = v
+}
+  return nil
+}
+
+func (p *TApiMetaData)  ReadField10(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadI32(ctx); err != nil {
+  return thrift.PrependError("error reading field 10: ", err)
+} else {
+  p.Type = &v
+}
+  return nil
+}
+
+func (p *TApiMetaData) Write(ctx context.Context, oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin(ctx, "TApiMetaData"); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
+  if p != nil {
+    if err := p.writeField1(ctx, oprot); err != nil { return err }
+    if err := p.writeField2(ctx, oprot); err != nil { return err }
+    if err := p.writeField3(ctx, oprot); err != nil { return err }
+    if err := p.writeField4(ctx, oprot); err != nil { return err }
+    if err := p.writeField5(ctx, oprot); err != nil { return err }
+    if err := p.writeField6(ctx, oprot); err != nil { return err }
+    if err := p.writeField7(ctx, oprot); err != nil { return err }
+    if err := p.writeField8(ctx, oprot); err != nil { return err }
+    if err := p.writeField10(ctx, oprot); err != nil { return err }
+  }
+  if err := oprot.WriteFieldStop(ctx); err != nil {
+    return thrift.PrependError("write field stop error: ", err) }
+  if err := oprot.WriteStructEnd(ctx); err != nil {
+    return thrift.PrependError("write struct stop error: ", err) }
+  return nil
+}
+
+func (p *TApiMetaData) writeField1(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin(ctx, "agentId", thrift.STRING, 1); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 1:agentId: ", p), err) }
+  if err := oprot.WriteString(ctx, string(p.AgentId)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.agentId (1) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 1:agentId: ", p), err) }
+  return err
+}
+
+func (p *TApiMetaData) writeField2(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin(ctx, "agentStartTime", thrift.I64, 2); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 2:agentStartTime: ", p), err) }
+  if err := oprot.WriteI64(ctx, int64(p.AgentStartTime)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.agentStartTime (2) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 2:agentStartTime: ", p), err) }
+  return err
+}
+
+func (p *TApiMetaData) writeField3(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if p.IsSetAppkey() {
+    if err := oprot.WriteFieldBegin(ctx, "appkey", thrift.STRING, 3); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 3:appkey: ", p), err) }
+    if err := oprot.WriteString(ctx, string(*p.Appkey)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.appkey (3) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(ctx); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 3:appkey: ", p), err) }
+  }
+  return err
+}
+
+func (p *TApiMetaData) writeField4(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin(ctx, "apiId", thrift.I32, 4); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 4:apiId: ", p), err) }
+  if err := oprot.WriteI32(ctx, int32(p.ApiId)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.apiId (4) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 4:apiId: ", p), err) }
+  return err
+}
+
+func (p *TApiMetaData) writeField5(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin(ctx, "apiInfo", thrift.STRING, 5); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 5:apiInfo: ", p), err) }
+  if err := oprot.WriteString(ctx, string(p.ApiInfo)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.apiInfo (5) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 5:apiInfo: ", p), err) }
+  return err
+}
+
+func (p *TApiMetaData) writeField6(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if p.IsSetLine() {
+    if err := oprot.WriteFieldBegin(ctx, "line", thrift.I32, 6); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 6:line: ", p), err) }
+    if err := oprot.WriteI32(ctx, int32(*p.Line)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.line (6) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(ctx); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 6:line: ", p), err) }
+  }
+  return err
+}
+
+func (p *TApiMetaData) writeField7(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin(ctx, "appId", thrift.STRING, 7); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 7:appId: ", p), err) }
+  if err := oprot.WriteString(ctx, string(p.AppId)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.appId (7) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 7:appId: ", p), err) }
+  return err
+}
+
+func (p *TApiMetaData) writeField8(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin(ctx, "tenant", thrift.STRING, 8); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 8:tenant: ", p), err) }
+  if err := oprot.WriteString(ctx, string(p.Tenant)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.tenant (8) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 8:tenant: ", p), err) }
+  return err
+}
+
+func (p *TApiMetaData) writeField10(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if p.IsSetType() {
+    if err := oprot.WriteFieldBegin(ctx, "type", thrift.I32, 10); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 10:type: ", p), err) }
+    if err := oprot.WriteI32(ctx, int32(*p.Type)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.type (10) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(ctx); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 10:type: ", p), err) }
+  }
+  return err
+}
+
+func (p *TApiMetaData) Equals(other *TApiMetaData) bool {
+  if p == other {
+    return true
+  } else if p == nil || other == nil {
+    return false
+  }
+  if p.AgentId != other.AgentId { return false }
+  if p.AgentStartTime != other.AgentStartTime { return false }
+  if p.Appkey != other.Appkey {
+    if p.Appkey == nil || other.Appkey == nil {
+      return false
+    }
+    if (*p.Appkey) != (*other.Appkey) { return false }
+  }
+  if p.ApiId != other.ApiId { return false }
+  if p.ApiInfo != other.ApiInfo { return false }
+  if p.Line != other.Line {
+    if p.Line == nil || other.Line == nil {
+      return false
+    }
+    if (*p.Line) != (*other.Line) { return false }
+  }
+  if p.AppId != other.AppId { return false }
+  if p.Tenant != other.Tenant { return false }
+  if p.Type != other.Type {
+    if p.Type == nil || other.Type == nil {
+      return false
+    }
+    if (*p.Type) != (*other.Type) { return false }
+  }
+  return true
+}
+
+func (p *TApiMetaData) String() string {
+  if p == nil {
+    return "<nil>"
+  }
+  return fmt.Sprintf("TApiMetaData(%+v)", *p)
+}
+
+func (p *TApiMetaData) Validate() error {
+  return nil
+}
+// Attributes:
+//  - Appkey
+//  - Template
+//  - Hash
+//  - AppId
+//  - Tenant
+type TSqlMetaData struct {
+  Appkey string `thrift:"appkey,1" db:"appkey" json:"appkey"`
+  Template string `thrift:"template,2" db:"template" json:"template"`
+  Hash string `thrift:"hash,3" db:"hash" json:"hash"`
+  AppId string `thrift:"appId,4" db:"appId" json:"appId"`
+  Tenant string `thrift:"tenant,5" db:"tenant" json:"tenant"`
+}
+
+func NewTSqlMetaData() *TSqlMetaData {
+  return &TSqlMetaData{}
+}
+
+
+func (p *TSqlMetaData) GetAppkey() string {
+  return p.Appkey
+}
+
+func (p *TSqlMetaData) GetTemplate() string {
+  return p.Template
+}
+
+func (p *TSqlMetaData) GetHash() string {
+  return p.Hash
+}
+
+func (p *TSqlMetaData) GetAppId() string {
+  return p.AppId
+}
+
+func (p *TSqlMetaData) GetTenant() string {
+  return p.Tenant
+}
+func (p *TSqlMetaData) Read(ctx context.Context, iprot thrift.TProtocol) error {
+  if _, err := iprot.ReadStructBegin(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
+  }
+
+
+  for {
+    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin(ctx)
+    if err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
+    }
+    if fieldTypeId == thrift.STOP { break; }
+    switch fieldId {
+    case 1:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField1(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 2:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField2(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 3:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField3(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 4:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField4(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    case 5:
+      if fieldTypeId == thrift.STRING {
+        if err := p.ReadField5(ctx, iprot); err != nil {
+          return err
+        }
+      } else {
+        if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+          return err
+        }
+      }
+    default:
+      if err := iprot.Skip(ctx, fieldTypeId); err != nil {
+        return err
+      }
+    }
+    if err := iprot.ReadFieldEnd(ctx); err != nil {
+      return err
+    }
+  }
+  if err := iprot.ReadStructEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+  }
+  return nil
+}
+
+func (p *TSqlMetaData)  ReadField1(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 1: ", err)
+} else {
+  p.Appkey = v
+}
+  return nil
+}
+
+func (p *TSqlMetaData)  ReadField2(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 2: ", err)
+} else {
+  p.Template = v
+}
+  return nil
+}
+
+func (p *TSqlMetaData)  ReadField3(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 3: ", err)
+} else {
+  p.Hash = v
+}
+  return nil
+}
+
+func (p *TSqlMetaData)  ReadField4(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 4: ", err)
+} else {
+  p.AppId = v
+}
+  return nil
+}
+
+func (p *TSqlMetaData)  ReadField5(ctx context.Context, iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(ctx); err != nil {
+  return thrift.PrependError("error reading field 5: ", err)
+} else {
+  p.Tenant = v
+}
+  return nil
+}
+
+func (p *TSqlMetaData) Write(ctx context.Context, oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin(ctx, "TSqlMetaData"); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
+  if p != nil {
+    if err := p.writeField1(ctx, oprot); err != nil { return err }
+    if err := p.writeField2(ctx, oprot); err != nil { return err }
+    if err := p.writeField3(ctx, oprot); err != nil { return err }
+    if err := p.writeField4(ctx, oprot); err != nil { return err }
+    if err := p.writeField5(ctx, oprot); err != nil { return err }
+  }
+  if err := oprot.WriteFieldStop(ctx); err != nil {
+    return thrift.PrependError("write field stop error: ", err) }
+  if err := oprot.WriteStructEnd(ctx); err != nil {
+    return thrift.PrependError("write struct stop error: ", err) }
+  return nil
+}
+
+func (p *TSqlMetaData) writeField1(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin(ctx, "appkey", thrift.STRING, 1); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 1:appkey: ", p), err) }
+  if err := oprot.WriteString(ctx, string(p.Appkey)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.appkey (1) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 1:appkey: ", p), err) }
+  return err
+}
+
+func (p *TSqlMetaData) writeField2(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin(ctx, "template", thrift.STRING, 2); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 2:template: ", p), err) }
+  if err := oprot.WriteString(ctx, string(p.Template)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.template (2) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 2:template: ", p), err) }
+  return err
+}
+
+func (p *TSqlMetaData) writeField3(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin(ctx, "hash", thrift.STRING, 3); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 3:hash: ", p), err) }
+  if err := oprot.WriteString(ctx, string(p.Hash)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.hash (3) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 3:hash: ", p), err) }
+  return err
+}
+
+func (p *TSqlMetaData) writeField4(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin(ctx, "appId", thrift.STRING, 4); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 4:appId: ", p), err) }
+  if err := oprot.WriteString(ctx, string(p.AppId)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.appId (4) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 4:appId: ", p), err) }
+  return err
+}
+
+func (p *TSqlMetaData) writeField5(ctx context.Context, oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin(ctx, "tenant", thrift.STRING, 5); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 5:tenant: ", p), err) }
+  if err := oprot.WriteString(ctx, string(p.Tenant)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.tenant (5) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(ctx); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 5:tenant: ", p), err) }
+  return err
+}
+
+func (p *TSqlMetaData) Equals(other *TSqlMetaData) bool {
+  if p == other {
+    return true
+  } else if p == nil || other == nil {
+    return false
+  }
+  if p.Appkey != other.Appkey { return false }
+  if p.Template != other.Template { return false }
+  if p.Hash != other.Hash { return false }
+  if p.AppId != other.AppId { return false }
+  if p.Tenant != other.Tenant { return false }
+  return true
+}
+
+func (p *TSqlMetaData) String() string {
+  if p == nil {
+    return "<nil>"
+  }
+  return fmt.Sprintf("TSqlMetaData(%+v)", *p)
+}
+
+func (p *TSqlMetaData) Validate() error {
+  return nil
+}

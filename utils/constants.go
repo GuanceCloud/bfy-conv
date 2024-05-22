@@ -1,4 +1,4 @@
-package parse
+package utils
 
 var ServiceMaps = map[int16][2]string{
 	// Pinpoint Internal (0 ~ 999)

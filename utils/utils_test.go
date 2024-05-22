@@ -1,4 +1,4 @@
-package parse
+package utils
 
 import (
 	"encoding/binary"
@@ -16,7 +16,7 @@ func Test_xid(t *testing.T) {
 	appid := "eurus-uw-pt"
 	agent := "xytb-uw-pt-7d876c8d-7vjg6"
 
-	result := xid(buf, appid, agent)
+	result := Xid(buf, appid, agent)
 
 	fmt.Println(result)
 	splitResult := strings.Split(result, "^")
@@ -49,7 +49,7 @@ func TestXid(t *testing.T) {
 	fmt.Println("--------------------")
 	fmt.Println(string(dstb))
 	fmt.Println("--------------------")
-	result := xid(buf, appid, agent)
+	result := Xid(buf, appid, agent)
 
 	fmt.Println(result)
 	splitResult := strings.Split(result, "^")
