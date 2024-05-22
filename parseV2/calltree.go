@@ -9,6 +9,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"math/rand"
 	"strconv"
+	"time"
 )
 
 func parseCallTree(msg *sarama.ConsumerMessage) (traces []*point.Point, category point.Category) {
@@ -21,6 +22,8 @@ func parseCallTree(msg *sarama.ConsumerMessage) (traces []*point.Point, category
 
 	for _, event := range ct.GetCallevents() {
 		var kvs = point.KVs{}
+		opts := point.DefaultLoggingOptions()
+		opts = append(opts, point.WithTime(time.UnixMilli(event.Ts)))
 		start := (event.GetTs() + int64(event.GetStartElapsed())) * 1e3
 		dur := 0
 		if event.GetEndElapsed() != 0 {
@@ -62,7 +65,7 @@ func parseCallTree(msg *sarama.ConsumerMessage) (traces []*point.Point, category
 		if err == nil {
 			kvs = kvs.Add("message", string(bts), false, false)
 		}
-		pt := point.NewPointV2("bfy", kvs, point.DefaultLoggingOptions()...)
+		pt := point.NewPointV2("bfy", kvs, opts...)
 
 		traces = append(traces, pt)
 	}

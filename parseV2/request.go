@@ -6,6 +6,7 @@ import (
 	"github.com/GuanceCloud/cliutils/point"
 	"github.com/IBM/sarama"
 	"strconv"
+	"time"
 )
 
 type BizData struct {
@@ -76,6 +77,8 @@ func request(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Ca
 	if err != nil {
 		return
 	}
+	opts := point.DefaultLoggingOptions()
+	opts = append(opts, point.WithTime(time.UnixMilli(req.Ts)))
 
 	var kvs point.KVs
 	kvs = kvs.Add("trace_id", req.TraceID, false, false).
@@ -101,7 +104,7 @@ func request(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Ca
 		AddTag("source", "kafka").
 		AddTag("source_type", utils.SourceType(int16(req.ServiceType))).
 		Add("message", string(msg.Value), false, false)
-	pt := point.NewPointV2("bfy", kvs, point.DefaultLoggingOptions()...)
+	pt := point.NewPointV2("bfy", kvs, opts...)
 	pts = append(pts, pt)
 	return pts, point.Tracing
 }
