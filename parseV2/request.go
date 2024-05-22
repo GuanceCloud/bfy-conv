@@ -78,7 +78,7 @@ func request(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Ca
 	}
 
 	var kvs point.KVs
-	kvs.Add("trace_id", req.TraceID, false, false).
+	kvs = kvs.Add("trace_id", req.TraceID, false, false).
 		Add("span_id", req.SpanID, false, false).
 		Add("parent_id", req.PSpanID, false, false).
 		AddTag("service", req.AppID).

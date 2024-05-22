@@ -30,7 +30,7 @@ func parseCallTree(msg *sarama.ConsumerMessage) (traces []*point.Point, category
 		parentID := parentIDFromDepth(event, event.SpanId, traces)
 		res := apiGet(event.AgentId, int(event.ApiId))
 
-		kvs.Add("trace_id", event.TraceId, false, false).
+		kvs = kvs.Add("trace_id", event.TraceId, false, false).
 			Add("parent_id", parentID, false, false).
 			Add("span_id", spanID, false, false).
 			AddTag("service", event.Appid).
@@ -59,10 +59,11 @@ func parseCallTree(msg *sarama.ConsumerMessage) (traces []*point.Point, category
 		}
 
 		bts, err := json.MarshalIndent(event, "", "  ")
-		if err != nil {
+		if err == nil {
 			kvs = kvs.Add("message", string(bts), false, false)
 		}
 		pt := point.NewPointV2("bfy", kvs, point.DefaultLoggingOptions()...)
+
 		traces = append(traces, pt)
 	}
 
@@ -88,4 +89,30 @@ func parentIDFromDepth(event *callTree.CallEvent, parentID string, trace []*poin
 		}
 	}
 	return parentID
+}
+
+func sourceType(st int32) (resource string, source_type string) {
+	resource = "unknown"
+	source_type = "custom"
+	if st, ok := utils.ServiceTypeMap[int16(st)]; !ok {
+		return
+	} else {
+		resource = st.Name
+		if st.IsQueue {
+			source_type = "message_queue"
+		}
+
+		if st.IsIncludeDestinationID == 1 {
+			source_type = "db"
+		}
+
+		if st.IsRpcClient == 1 {
+			source_type = "http"
+		}
+
+		if st.IsTerminal == 1 {
+			source_type = "db"
+		}
+	}
+	return
 }

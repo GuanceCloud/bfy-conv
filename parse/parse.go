@@ -210,7 +210,7 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	if event.IsSetDestinationId() {
 		pt.AddTag("operation", *event.DestinationId)
 	} else {
-		pt.AddTag("operation", (resource))
+		pt.AddTag("operation", resource)
 	}
 
 	pt.Add("resource", resource)

@@ -6,7 +6,7 @@ import (
 	"github.com/IBM/sarama"
 )
 
-var log *logger.Logger
+var log = logger.DefaultSLogger("bfy")
 
 func HandlerTopic(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Category) {
 	switch msg.Topic {

@@ -31,6 +31,10 @@ func InitRedis(host string, port string, password string, db int) {
 	localCache = NewCache()
 }
 
+func Close() {
+	_ = pool.Close()
+}
+
 func RedigoGet(key string) string {
 	va, ok := localCache.Get(key)
 	if ok {
@@ -39,7 +43,7 @@ func RedigoGet(key string) string {
 	if pool != nil {
 		val, err := pool.Do(context.Background(), "GET", key).Result()
 		if err == redis.Nil {
-			log.Debugf("can not get %s form redis ,err=%v , or trace_id=%s", key, err, va)
+			log.Debugf("can not get %s form redis ,err=%v ", key, err)
 			return va
 		}
 		return val.(string)
@@ -50,7 +54,7 @@ func RedigoGet(key string) string {
 
 func RedigoSet(key, val string) {
 	if pool != nil {
-		pool.Do(context.Background(), "SET", key, val, "EX", 600).Result()
+		pool.Do(context.Background(), "SET", key, val).Result()
 	}
 
 	localCache.Set(key, val)
@@ -98,7 +102,7 @@ func (c *Cache) Get(key string) (string, bool) {
 	return "", false
 }
 
-func (c *Cache) Cleanup() {
+func (c *Cache) cleanup() {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -117,7 +121,7 @@ func (c *Cache) CleanupRoutine() {
 	for {
 		select {
 		case <-ticker.C:
-			c.Cleanup()
+			c.cleanup()
 		}
 	}
 }
