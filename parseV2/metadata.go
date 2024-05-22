@@ -50,8 +50,8 @@ func sqlSetToCache(sql *span.TSqlMetaData) {
 	RedigoSet(key, val)
 }
 
-func sqlGetFromCache(apiID, hash string) string {
-	key := fmt.Sprintf("%s-sql-%s", apiID, hash)
+func sqlGetFromCache(appID, hash string) string {
+	key := fmt.Sprintf("%s-sql-%s", appID, hash)
 	val := RedigoGet(key)
 
 	if val == "" {

@@ -15,7 +15,7 @@ var requestTestData = `
   "model": "/oaNotify-cont",
   "group": "451DC0F25922FD15",
   "trxid": "shop_web^1715024901017^0kQfJK23Iu^2351",
-  "trace_id": "100000000000092f0d8ca3e554b3a737",
+  "trace_id": "200000000000092f0d8ca3e554b3a737",
   "span_id": "174155503488541",
   "pspan_id": "0",
   "ip_addr": "172.17.0.128",
@@ -83,23 +83,29 @@ func Test_parseCallTree(t *testing.T) {
 		return
 	}
 	rd.Ts = time.Now().UnixMilli()
+	rd.TraceID = "311000000000092f0d8ca3e554b3a737"
+	rd.SpanID = "1105787194919167820"
 	t.Logf("request data=%+v", rd)
 	// 初始化数据
-	callTree := &callTree.CallTree{Callevents: make([]*callTree.CallEvent, 0)}
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 1))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 2))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 3))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 4))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 5))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 5))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 5))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 5))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 5))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 5))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 5))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 5))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 5))
-	callTree.Callevents = append(callTree.Callevents, newCallEvent(rd.TraceID, rd.SpanID, 2))
+	callTree := &callTree.CallTree{
+		Callevents: []*callTree.CallEvent{
+			newCallEvent(rd.TraceID, rd.SpanID, 1),
+			newCallEvent(rd.TraceID, rd.SpanID, 2),
+			newCallEvent(rd.TraceID, rd.SpanID, 3),
+			newCallEvent(rd.TraceID, rd.SpanID, 4),
+			newCallEvent(rd.TraceID, rd.SpanID, 5),
+			newCallEvent(rd.TraceID, rd.SpanID, 5),
+			newCallEvent(rd.TraceID, rd.SpanID, 5),
+			newCallEvent(rd.TraceID, rd.SpanID, 5),
+			newCallEvent(rd.TraceID, rd.SpanID, 5),
+			newCallEvent(rd.TraceID, rd.SpanID, 5),
+			newCallEvent(rd.TraceID, rd.SpanID, 5),
+			newCallEvent(rd.TraceID, rd.SpanID, 6),
+			newCallEvent(rd.TraceID, rd.SpanID, 5),
+			newCallEvent(rd.TraceID, rd.SpanID, 4),
+			newCallEvent(rd.TraceID, rd.SpanID, 2),
+		},
+	}
 
 	bts, err := proto.Marshal(callTree)
 	if err != nil {
@@ -117,27 +123,25 @@ func Test_parseCallTree(t *testing.T) {
 		Offset:         1,
 	}
 	// 1 调用方法
-	pts, category := parseCallTree(msg)
+	_, category := parseCallTree(msg)
 	t.Logf("category =%d", category)
-	for _, pt := range pts {
-		t.Logf("point=%s", pt.LineProto())
-	}
+	t.Logf("request ts=%d", rd.Ts)
 	// 2 发送到kafka
 	sendToKafka("dwd_callevents", bts, t)
-
-	sendToKafka("dwd_request", []byte(requestTestData), t)
+	bts, _ = json.Marshal(rd)
+	sendToKafka("dwd_request", bts, t)
 
 	Close()
 }
 
 func newCallEvent(traceID string, spanID string, depth int32) *callTree.CallEvent {
-
+	time.Sleep(time.Millisecond)
 	event := &callTree.CallEvent{
 		Id:                 "000",
 		SpanId:             spanID,
 		Sequence:           0,
-		StartElapsed:       1000,
-		EndElapsed:         100,
+		StartElapsed:       10,
+		EndElapsed:         1,
 		Rpc:                "",
 		ServiceType:        1010,
 		EndPoint:           "",
@@ -178,7 +182,7 @@ func newCallEvent(traceID string, spanID string, depth int32) *callTree.CallEven
 		IsOtel:             false,
 		EventCid:           "",
 	}
-
+	fmt.Printf("event ts=%d \n", event.Ts)
 	return event
 }
 
