@@ -69,6 +69,9 @@ func parseSQL(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.C
 	if err != nil {
 		return
 	}
+	if !sql.IsOtel {
+		return
+	}
 	opts := point.DefaultLoggingOptions()
 	opts = append(opts, point.WithTime(time.UnixMilli(sql.Ts)))
 	sqlStr := sqlGetFromCache(sql.Appid, sql.Group)
@@ -155,17 +158,20 @@ func parseException(msg *sarama.ConsumerMessage) (pts []*point.Point, category p
 		log.Errorf("")
 		return
 	}
+	if !e.IsOtel {
+		return
+	}
 	opts := point.DefaultLoggingOptions()
 	opts = append(opts, point.WithTime(time.UnixMilli(e.Ts)))
 	var kvs point.KVs
 	kvs = kvs.AddTag("app_id", e.AppId).
 		AddTag("name", e.Name).
-		AddTag("message", e.Message).
 		AddTag("method", e.Method).
 		AddTag("class", e.Class).
 		AddTag("interface", e.Interface).
 		AddTag("url", e.Url).
-		AddTag("event_id", e.EventId).Add("message", string(msg.Value), false, false)
+		AddTag("event_id", e.EventId).
+		Add("message", string(msg.Value), false, false)
 	pt := point.NewPointV2("bfy-exception", kvs, opts...)
 	pts = append(pts, pt)
 	return pts, point.Logging

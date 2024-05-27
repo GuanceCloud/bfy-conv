@@ -1,10 +1,11 @@
 # 新结构对应关系梳理
 
-- Request 对应之前pp结构的Tspan
-- CallTree 对应 tspanChunk
-- sql数据 是对callTree中event补充
-- exception数据 也是对Event的补充
-- metaData 对应的是pp中的meta，是sql和api字符串
+- Request 对应之前pp结构的Tspan ， `Topic：dwd_request` json 格式
+- CallTree 对应 tspanChunk ， `Topic：dwd_callevents` proto 格式
+- sql数据 是对callTree中event补充 ， `Topic：dwd_sql`  json
+- exception数据 也是对Event的补充 ， `Topic：dwd_exception` json
+- metaData 对应的是pp中的meta，是sql和api字符串 ， `Topic：dwd_metadata` thrift 格式
+- jvm 生成指标数据 ， `Topic：dwd_jvmstats` json
 
 ## 对应关系
 
@@ -29,21 +30,21 @@
 四个Topic：
 
 ### 1 dwd_request
-Request 数据。 在接收到之后填充 `apiid` 对应的`meta` 数据。 发送到中心。
+Request 数据。 在接收到之后填充 `apiid` 对应的`meta` 数据。
 
 ### 2 dwd_sql
-sql 数据。 根据`id` 与 event的id一致，可独立生成一条日志，其中 event_id 就是 id，这样可以通过id与链路关联。还有一个叫 event_cid 与span_id trace_id性质一致。
+sql 数据用来生成日志， 通过 `traceId` 与链路关联。还有一个叫 event_cid 与span_id trace_id性质一致 这里不采用。
 
-所以，需要***将 event 中的 id 设置为 span_id***
+在生成日志之前，通过group字段与`sqlMeta`中的hash关联查找对用的sql语句，并填充到日志`sql_template`中。
 
 ### 3 dwd_exception
 
 错误信息。同上 与 sql逻辑一致。
 
 ### 4 dwd_callevents 
-CallTree 数据。里面包括 `event list`。
+CallTree 数据。由 `CallEvent` 数组组成。 spanId作为第一个Event的`parent_span_id`，并根据depth判断event的父子级关系。
 
-每个`event` 通过 `span_id` 与 `Request` 关联。也可以通过event_cid与request关联。
+每个`event` 通过 `trace_id` 与 `Request` 关联。也可以通过event_cid与request关联（等同于spanId和traceId）。
 
 通过 event中id 又与sql或者异常的id关联。
 
@@ -56,4 +57,15 @@ CallTree 数据。里面包括 `event list`。
 这样的好处的，不浪费消费资源情况下做到消息同步。存储的格式为：key："Agentid + string/sql + id" 对应的val为 一个string（未定，消息数据太冗余）。
 
 在处理 `Request` 或者 `Event` 时,遇到 apiid 可从本地内存查找，如果没有从reids查找并放本地内存一份，如没有，则将id上传。
+
+## 对应关系
+|           | Request           | CallTree                 | sql                                     | Exception | sql Meta | func Meta |
+|-----------|-------------------|--------------------------|-----------------------------------------|-----------|----------|-----------|
+| Request   |                   | spanid,traceId,event_cid | spanId traceId agentId userId sessionId |           | apiID    | apiID     |
+| CallTree  | spanId            |                          | eventId                                 |           | group    | group     |
+| Sql       | spanID traceId    | EventId                  |                                         |           | group    | group     |
+| Exception | userId,session_id | EventId                  |                                         |           |          |           |
+| sql Meta  | apiId             | EventId                  | group                                   |           |          |           |
+| func Meta | apiId             |                          |                                         |           |          |           |
+
 

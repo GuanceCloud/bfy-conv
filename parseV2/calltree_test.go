@@ -179,7 +179,7 @@ func newCallEvent(traceID string, spanID string, depth int32) *callTree.CallEven
 		Ts:                 time.Now().UnixMilli(),
 		FromWebAndMobile:   false,
 		TraceId:            traceID,
-		IsOtel:             false,
+		IsOtel:             true,
 		EventCid:           "",
 	}
 	fmt.Printf("event ts=%d \n", event.Ts)

@@ -77,7 +77,11 @@ func request(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Ca
 	if err != nil {
 		return
 	}
-	opts := point.DefaultLoggingOptions()
+	if !req.IsOtel {
+		// 不是ot协议的退出
+		return
+	}
+	opts := point.CommonLoggingOptions()
 	opts = append(opts, point.WithTime(time.UnixMilli(req.Ts)))
 
 	var kvs point.KVs
@@ -85,8 +89,8 @@ func request(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Ca
 		Add("span_id", req.SpanID, false, false).
 		Add("parent_id", req.PSpanID, false, false).
 		AddTag("service", req.AppID).
-		Add("resource", req.URL, false, false).
-		Add("operation", req.URL, false, false).
+		Add("resource", req.Path, false, false).
+		Add("operation", req.Path, false, false).
 		Add("start", req.Ts*1e3, false, false).
 		Add("duration", req.Dur*1e3, false, false).
 		AddTag("status", GetStatus(req.Status)).
@@ -96,6 +100,7 @@ func request(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Ca
 		AddTag("pappid", req.PAppID).
 		AddTag("http_method", req.Method).
 		AddTag("http_url", req.URL).
+		AddTag("rpc_route", req.URL).
 		AddTag("http_status_code", strconv.Itoa(req.RetCode)).
 		AddTag("span_type", "local").
 		AddTag("user_id", req.UserID).
