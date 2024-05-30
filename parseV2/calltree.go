@@ -24,6 +24,11 @@ func parseCallTree(msg *sarama.ConsumerMessage) (traces []*point.Point, category
 		if !event.IsOtel {
 			continue
 		}
+		// 过滤
+		projectID := projectFilter(event.Appid)
+		if projectID == "" {
+			continue
+		}
 		var kvs = point.KVs{}
 		opts := point.CommonLoggingOptions()
 		opts = append(opts, point.WithTime(time.UnixMilli(event.Ts)))
@@ -48,6 +53,7 @@ func parseCallTree(msg *sarama.ConsumerMessage) (traces []*point.Point, category
 			AddTag("depth", strconv.Itoa(int(event.Depth))).
 			AddTag("sequence", strconv.Itoa(int(event.Sequence))).
 			AddTag("event_id", event.Id).
+			AddTag(ProjectKey, projectID).
 			AddTag("agent_id", event.AgentId).
 			AddTag("agent_ip", event.AgentIp).
 			AddTag("span_type", "local").

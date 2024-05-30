@@ -34,8 +34,8 @@ type RequestData struct {
 	RetCode         int     `json:"ret_code,omitempty"`          // 返回状态码
 	Method          string  `json:"method,omitempty"`            // 请求方法
 	ModelID         string  `json:"modelid,omitempty"`           // 模型id
-	URL             string  `json:"url,omitempty"`               // 请求url
-	ServiceType     int     `json:"service_type,omitempty"`      // 服务类型
+	URL             string  `json:"url,omitempty"`               // 请求url 请求参数
+	ServiceType     int     `json:"service_type,omitempty"`      // 服务类型 从serviceType表中取值
 	AppID           string  `json:"appid,omitempty"`             // 应用id
 	AppSysID        string  `json:"appsysid,omitempty"`          // 应用系统id
 	PAgentID        string  `json:"pagent_id,omitempty"`         // 上级探针id
@@ -81,6 +81,12 @@ func request(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Ca
 		// 不是ot协议的退出
 		return
 	}
+	// 过滤
+	projectID := projectFilter(req.AppID)
+	if projectID == "" {
+		return
+	}
+
 	opts := point.CommonLoggingOptions()
 	opts = append(opts, point.WithTime(time.UnixMilli(req.Ts)))
 
@@ -105,6 +111,7 @@ func request(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Ca
 		AddTag("span_type", "local").
 		AddTag("user_id", req.UserID).
 		AddTag("session_id", req.SessionID).
+		AddTag(ProjectKey, projectID).
 		AddTag("service_type", "bfy-tspan").
 		AddTag("source", "kafka").
 		AddTag("source_type", utils.SourceType(int16(req.ServiceType))).

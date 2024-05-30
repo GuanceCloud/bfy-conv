@@ -26,6 +26,9 @@ func metadata(msg *sarama.ConsumerMessage) {
 				if err != nil {
 					return
 				}
+				if projectFilter(sqlMeta.AppId) == "" {
+					return
+				}
 				sqlSetToCache(sqlMeta)
 			case "api_metadata":
 				transport := &thrift.TMemoryBuffer{
@@ -36,6 +39,9 @@ func metadata(msg *sarama.ConsumerMessage) {
 				ctx, _ := context.WithTimeout(context.Background(), time.Second)
 				err := apiMeta.Read(ctx, protocol)
 				if err != nil {
+					return
+				}
+				if projectFilter(apiMeta.AppId) == "" {
 					return
 				}
 				apiSet(apiMeta)
@@ -57,7 +63,7 @@ func sqlGetFromCache(appID, hash string) string {
 	if val == "" {
 		return key // 如果查询不到，将hash返回。
 	}
-	return hash
+	return val
 }
 
 func apiSet(api *span.TApiMetaData) {

@@ -14,3 +14,5 @@ thrift --gen go span.thrift
 根据 agentid 和 transactionID 从redis中获取trace_id，或者从请求的头部信息中根据 B3 协议获取。再存在redis中。
 
 1.3.3 版本以后，tSpan 中的 traceparent 为标准 W3C 协议格式，`trace_id` 和  `span_id` 都是从其中获取。
+
+1.4.x 版本为新结构，[parseV2](./parseV2/readme.md)

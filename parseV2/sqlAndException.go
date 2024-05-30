@@ -72,6 +72,12 @@ func parseSQL(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.C
 	if !sql.IsOtel {
 		return
 	}
+	// 过滤
+	projectID := projectFilter(sql.Appid)
+	if projectID == "" {
+		return
+	}
+
 	opts := point.DefaultLoggingOptions()
 	opts = append(opts, point.WithTime(time.UnixMilli(sql.Ts)))
 	sqlStr := sqlGetFromCache(sql.Appid, sql.Group)
@@ -84,6 +90,7 @@ func parseSQL(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.C
 		AddTag("agent_id", sql.AgentId).
 		AddTag("sql_template", sqlStr).
 		AddTag("db", sql.Db).
+		AddTag(ProjectKey, projectID).
 		AddTag("db_host", sql.DbHost).
 		Add("message", string(msg.Value), false, false)
 
@@ -161,6 +168,11 @@ func parseException(msg *sarama.ConsumerMessage) (pts []*point.Point, category p
 	if !e.IsOtel {
 		return
 	}
+	// 过滤
+	projectID := projectFilter(e.AppId)
+	if projectID == "" {
+		return
+	}
 	opts := point.DefaultLoggingOptions()
 	opts = append(opts, point.WithTime(time.UnixMilli(e.Ts)))
 	var kvs point.KVs
@@ -170,6 +182,7 @@ func parseException(msg *sarama.ConsumerMessage) (pts []*point.Point, category p
 		AddTag("class", e.Class).
 		AddTag("interface", e.Interface).
 		AddTag("url", e.Url).
+		AddTag(ProjectKey, projectID).
 		AddTag("event_id", e.EventId).
 		Add("message", string(msg.Value), false, false)
 	pt := point.NewPointV2("bfy-exception", kvs, opts...)
