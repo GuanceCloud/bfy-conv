@@ -89,6 +89,7 @@ func parseSQL(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.C
 		AddTag("trace_id", sql.TraceId).
 		AddTag("agent_id", sql.AgentId).
 		AddTag("sql_template", sqlStr).
+		AddTag("app_id", sql.Appid).
 		AddTag("db", sql.Db).
 		AddTag(ProjectKey, projectID).
 		AddTag("db_host", sql.DbHost).
@@ -180,6 +181,7 @@ func parseException(msg *sarama.ConsumerMessage) (pts []*point.Point, category p
 		AddTag("name", e.Name).
 		AddTag("method", e.Method).
 		AddTag("class", e.Class).
+		AddTag("trace_id", e.TraceId).
 		AddTag("interface", e.Interface).
 		AddTag("url", e.Url).
 		AddTag(ProjectKey, projectID).
