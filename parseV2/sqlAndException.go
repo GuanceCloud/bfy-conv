@@ -77,7 +77,7 @@ func parseSQL(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.C
 	if projectID == "" {
 		return
 	}
-
+	now := time.Now()
 	opts := point.DefaultLoggingOptions()
 	opts = append(opts, point.WithTime(time.UnixMilli(sql.Ts)))
 	sqlStr := sqlGetFromCache(sql.Appid, sql.Group)
@@ -91,6 +91,7 @@ func parseSQL(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.C
 		AddTag("sql_template", sqlStr).
 		AddTag("app_id", sql.Appid).
 		AddTag("db", sql.Db).
+		AddTag("p_time", now.Format("2006-01-02 15:04:05.999")).
 		AddTag(ProjectKey, projectID).
 		AddTag("db_host", sql.DbHost).
 		Add("message", string(msg.Value), false, false)
