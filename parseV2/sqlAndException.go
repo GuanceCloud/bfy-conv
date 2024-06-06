@@ -2,6 +2,7 @@ package parseV2
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/GuanceCloud/cliutils/point"
 	"github.com/IBM/sarama"
 	"time"
@@ -62,6 +63,14 @@ type SQL struct {
 	IsOtel      bool   `json:"is_otel"`      // 是否ot
 }
 
+/*
+dbhost,dbtype,db,sql,outputs,bind_value,dur 放原文里
+重复放入字段：dbhost,dbtype,db
+丢弃字段： group ,is_otel, trxid
+*/
+
+var sqlMessage = "{dbhost:%s,dbtype:%s,db:%s,sql:%s,outputs:%s,bind_value:%s,dur:%d}"
+
 func parseSQL(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Category) {
 	// id 与 event中的event_id一致
 	sql := &SQL{}
@@ -83,23 +92,33 @@ func parseSQL(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.C
 	sqlStr := sqlGetFromCache(sql.Appid, sql.Group)
 	// 组装行协议 logging
 	var kvs point.KVs
-	kvs = kvs.AddTag("group_id", sql.Group).
-		AddTag("span_id", sql.SpanId).
+	kvs = kvs.AddTag("span_id", sql.SpanId).
 		AddTag("event_id", sql.ID).
 		AddTag("trace_id", sql.TraceId).
 		AddTag("agent_id", sql.AgentId).
-		AddTag("sql_template", sqlStr).
 		AddTag("app_id", sql.Appid).
 		AddTag("db", sql.Db).
+		AddTag("dbhost", sql.DbHost).
+		AddTag("dbtype", sql.DbType).
 		AddTag("p_time", now.Format("2006-01-02 15:04:05.999")).
 		AddTag(ProjectKey, projectID).
 		AddTag("db_host", sql.DbHost).
-		Add("message", string(msg.Value), false, false)
+		AddTag("ip", sql.Ip).
+		AddTag("status", GetStatus(sql.Status)).
+		Add("message", fmt.Sprintf(sqlMessage, sql.DbHost, sql.DbType, sql.Db, sqlStr, sql.Outputs, sql.BindValue, sql.Dur), false, false)
 
-	if sql.Outputs != "" {
-		kvs = kvs.AddTag("outputs", sql.Outputs)
+	if sql.Tolerated != 0 {
+		kvs = kvs.Add("Tolerated", sql.Tolerated, false, false)
 	}
-
+	if sql.Frustrated != 0 {
+		kvs = kvs.Add("Frustrated", sql.Frustrated, false, false)
+	}
+	if sql.Province != "" {
+		kvs = kvs.AddTag("province", sql.Province)
+	}
+	if sql.City != "" {
+		kvs = kvs.AddTag("city", sql.City)
+	}
 	pt := point.NewPointV2("bfy-sql-logging", kvs, opts...)
 	pts = append(pts, pt)
 	return pts, point.Logging
