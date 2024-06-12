@@ -108,7 +108,7 @@ func request(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Ca
 		AddTag("http_url", req.URL).
 		AddTag("rpc_route", req.URL).
 		AddTag("http_status_code", strconv.Itoa(req.RetCode)).
-		AddTag("span_type", "local").
+		AddTag("span_type", "entry").
 		AddTag("user_id", req.UserID).
 		AddTag("session_id", req.SessionID).
 		AddTag(ProjectKey, projectID).

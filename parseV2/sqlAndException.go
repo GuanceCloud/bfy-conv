@@ -69,7 +69,7 @@ dbhost,dbtype,db,sql,outputs,bind_value,dur 放原文里
 丢弃字段： group ,is_otel, trxid
 */
 
-var sqlMessage = "{dbhost:%s,dbtype:%s,db:%s,sql:%s,outputs:%s,bind_value:%s,dur:%d}"
+var sqlMessage = `{"dbhost":"%s","dbtype":"%s","db":"%s","sql":"%s","outputs":"%s","bind_value":"%s","dur":%d}`
 
 func parseSQL(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Category) {
 	// id 与 event中的event_id一致
