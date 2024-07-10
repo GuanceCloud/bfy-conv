@@ -133,54 +133,54 @@ func Handle(message []byte) (pts []*point.Point, category point.Category) {
 }
 
 func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
-	pt := &point.Point{}
-	pt.SetName("kafka-bfy")
-	pt.Add("span_id", strconv.FormatInt(utils.GetRandomWithAll(), 16))
+	var kvs point.KVs
+
+	kvs = kvs.Add("span_id", strconv.FormatInt(utils.GetRandomWithAll(), 16), false, false)
 
 	d := (event.StartElapsed + event.EndElapsed) * 1e3 // 不乘
 	if d < 0 {
 		d = 1000
 	}
-	pt.Add("duration", d)
+	kvs = kvs.Add("duration", d, false, false)
 	resource := ""
 	if st, ok := utils.ServiceTypeMap[event.ServiceType]; ok {
 		resource = st.Name
 
 		if st.IsQueue {
-			pt.MustAddTag("source_type", "message_queue")
+			kvs = kvs.MustAddTag("source_type", "message_queue")
 		}
 
 		if st.IsIncludeDestinationID == 1 {
-			pt.MustAddTag("source_type", "db")
+			kvs = kvs.MustAddTag("source_type", "db")
 		}
 
 		if st.IsRecordStatistics == 1 {
-			pt.MustAddTag("source_type", "custom")
+			kvs = kvs.MustAddTag("source_type", "custom")
 		}
 
 		if st.IsInternalMethod == 1 {
-			pt.MustAddTag("source_type", "custom")
+			kvs = kvs.MustAddTag("source_type", "custom")
 		}
 
 		if st.IsRpcClient == 1 {
-			pt.MustAddTag("source_type", "http")
+			kvs = kvs.MustAddTag("source_type", "http")
 		}
 
 		if st.IsTerminal == 1 {
-			pt.MustAddTag("service", strings.ToLower(st.TypeDesc))
-			pt.MustAddTag("source_type", "db")
+			kvs = kvs.MustAddTag("service", strings.ToLower(st.TypeDesc)).
+				MustAddTag("source_type", "db")
 		}
 
 		if st.IsUser == 1 {
-			pt.MustAddTag("source_type", "custom")
+			kvs = kvs.MustAddTag("source_type", "custom")
 		}
 
 		if st.IsUnknown == 1 {
-			pt.MustAddTag("source_type", "unknown")
+			kvs = kvs.MustAddTag("source_type", "unknown")
 		}
 
-		if pt.GetTag("source_type") == "" {
-			pt.MustAddTag("source_type", "unknown")
+		if kvs.GetTag("source_type") == "" {
+			kvs = kvs.MustAddTag("source_type", "unknown")
 		}
 	} else {
 		return nil
@@ -188,44 +188,45 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 
 	if event.IsSetRPC() {
 		rpc := event.GetRPC()
-		pt.Add("resource", rpc)
-		pt.AddTag("operation", rpc)
+		kvs = kvs.AddTag("resource", rpc).
+			AddTag("operation", rpc)
 		index := strings.Index(rpc, "?")
 		if index != -1 {
 			route := rpc[:index]
-			pt.AddTag("rpc_route", route)
+			kvs = kvs.AddTag("rpc_route", route)
 		} else {
-			pt.AddTag("rpc_route", rpc)
+			kvs = kvs.AddTag("rpc_route", rpc)
 		}
 	}
 	if event.IsSetURL() {
-		pt.AddTag("url", *event.URL)
+		kvs = kvs.AddTag("url", *event.URL)
 	}
 	if event.IsSetSql() {
-		pt.AddTag("db.host", event.Sql.Dbhost)
-		pt.AddTag("db.type", event.Sql.Dbtype)
-		pt.AddTag("db.status", event.Sql.Status)
+		kvs = kvs.AddTag("db.host", event.Sql.Dbhost).
+			AddTag("db.type", event.Sql.Dbtype).
+			AddTag("db.status", event.Sql.Status)
 	}
 
 	if event.IsSetDestinationId() {
-		pt.AddTag("operation", *event.DestinationId)
+		kvs = kvs.AddTag("operation", *event.DestinationId)
 	} else {
-		pt.AddTag("operation", resource)
+		kvs = kvs.AddTag("operation", resource)
 	}
 
-	pt.Add("resource", resource)
-	pt.AddTag("source", "byf-kafka")
+	kvs = kvs.Add("resource", resource, false, false).
+		AddTag("source", "byf-kafka")
 
 	if event.IsSetAnnotations() {
 		for _, ann := range event.Annotations {
-			pt.AddTag("key"+strconv.Itoa(int(ann.Key)), (ann.GetValue().String()))
+			kvs = kvs.AddTag("key"+strconv.Itoa(int(ann.Key)), (ann.GetValue().String()))
 		}
 	}
 	jsonBody, err := json.Marshal(event)
 	if err == nil {
-		pt.Add("message", string(jsonBody))
+		kvs = kvs.Add("message", string(jsonBody), false, false)
 	}
-	return pt
+
+	return point.NewPointV2("kafka-bfy", kvs, point.CommonLoggingOptions()...)
 }
 
 func parseTSpanChunk(buf []byte) (*span.TSpanChunk, error) {

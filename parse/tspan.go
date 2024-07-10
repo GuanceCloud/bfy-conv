@@ -86,73 +86,75 @@ func tSpanToPoint(tSpan *span.TSpan, xid string) []*point.Point {
 		pts = append(pts, eventPt)
 	}
 
-	pt := &point.Point{}
-	pt.SetName("kafka-bfy")
-	pt.Add("span_id", spanID)
-	pt.Add("trace_id", traceID)
+	var kvs point.KVs
+
+	kvs = kvs.AddTag("span_id", spanID).
+		AddTag("trace_id", traceID)
 	pid := tSpan.ParentSpanId
 	if pid == 0 {
 		pid = 0
 	}
-	pt.Add("parent_id", parentIDToDK(tSpan.GetParentId()))
-	pt.Add("start", tSpan.StartTime*1e3)
-	pt.Add("duration", tSpan.Elapsed*1e3)
+	kvs = kvs.Add("parent_id", parentIDToDK(tSpan.GetParentId()), false, false).
+		Add("start", tSpan.StartTime*1e3, false, false).
+		Add("duration", tSpan.Elapsed*1e3, false, false)
 	if tSpan.IsSetRPC() {
 		rpc := tSpan.GetRPC()
-		pt.Add("resource", rpc)
-		pt.AddTag("operation", rpc)
+		kvs = kvs.AddTag("resource", rpc).
+			AddTag("operation", rpc)
 		index := strings.Index(rpc, "?")
 		if index != -1 {
 			route := rpc[:index]
-			pt.AddTag("rpc_route", route)
+			kvs = kvs.AddTag("rpc_route", route)
 		} else {
-			pt.AddTag("rpc_route", rpc)
+			kvs = kvs.AddTag("rpc_route", rpc)
 		}
 	} else {
-		pt.Add("resource", "unknown")
-		pt.AddTag("operation", "unknown")
+		kvs = kvs.AddTag("resource", "unknown").
+			AddTag("operation", "unknown")
 	}
-	pt.AddTag("agentId", tSpan.GetAgentId())
-	pt.AddTag(projectKey, projectVal)
-	pt.AddTag("service", tSpan.ApplicationName)
-	pt.AddTag("service_name", utils.ServiceName(tSpan.ServiceType))
-	pt.AddTag("source_type", utils.SourceType(tSpan.ServiceType))
-	pt.AddTag("transactionId", xid)
-	pt.AddTag("original_type", "Span")
+	kvs = kvs.AddTag("agentId", tSpan.GetAgentId()).
+		AddTag(projectKey, projectVal).
+		AddTag("service", tSpan.ApplicationName).
+		AddTag("service_name", utils.ServiceName(tSpan.ServiceType)).
+		AddTag("source_type", utils.SourceType(tSpan.ServiceType)).
+		AddTag("transactionId", xid).
+		AddTag("original_type", "Span")
 	if tSpan.ExceptionInfo != nil && tSpan.Err != nil && *tSpan.Err != 0 {
-		pt.AddTag("status", "error")
-		pt.Add("exception", *tSpan.ExceptionInfo)
+		kvs = kvs.AddTag("status", "error").
+			Add("exception", *tSpan.ExceptionInfo, false, false)
 	} else {
-		pt.AddTag("status", "ok")
+		kvs = kvs.AddTag("status", "ok")
 	}
 	if tSpan.GetTracestate() != "" {
 		states := getTraceState(tSpan.GetTracestate())
 		for k, v := range states {
-			pt.AddTag(k, v)
+			kvs = kvs.AddTag(k, v)
 		}
 	}
 	// requestBody 和 responseBody Headers 没有放进去时因为其中有敏感信息
 	if tSpan.IsSetHttpMethod() {
-		pt.AddTag("http_method", *tSpan.HttpMethod)
+		kvs = kvs.AddTag("http_method", *tSpan.HttpMethod)
 	}
 	if tSpan.IsSetHttpRequestTID() {
-		pt.AddTag("http_request_tid", *tSpan.HttpRequestTID)
+		kvs = kvs.AddTag("http_request_tid", *tSpan.HttpRequestTID)
 	}
 	if tSpan.IsSetRetcode() {
-		pt.AddTag("http_status_code", strconv.Itoa(int(*tSpan.Retcode)))
+		kvs = kvs.AddTag("http_status_code", strconv.Itoa(int(*tSpan.Retcode)))
 	}
-	pt.AddTag("span_type", "entry")
-	pt.AddTag("service_type", "bfy-tspan")
-	pt.AddTag("process_time", time.Now().Format("2006-01-02 15:04:05.000"))
+	kvs = kvs.AddTag("span_type", "entry").
+		AddTag("service_type", "bfy-tspan").
+		AddTag("process_time", time.Now().Format("2006-01-02 15:04:05.000")).
+		AddTag("event_count", strconv.Itoa(len(tSpan.SpanEventList)))
+	ts := time.UnixMilli(tSpan.StartTime)
 
-	pt.SetTime(time.UnixMilli(tSpan.StartTime))
-	pt.AddTag("event_count", strconv.Itoa(len(tSpan.SpanEventList)))
 	tSpan.SpanEventList = make([]*span.TSpanEvent, 0) // 防止重复数据太多
 	jsonBody, err := json.Marshal(tSpan)
 	if err == nil {
-		pt.Add("message", string(jsonBody))
+		kvs = kvs.Add("message", string(jsonBody), false, false)
 	}
-	pts = append(pts, pt)
+	opts := append(point.CommonLoggingOptions(), point.WithTime(ts))
+
+	pts = append(pts, point.NewPointV2("kafka_bfy", kvs, opts...))
 
 	return pts
 }
