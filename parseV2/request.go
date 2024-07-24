@@ -114,7 +114,7 @@ func request(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Ca
 		AddTag(ProjectKey, projectID).
 		AddTag("service_type", "bfy-tspan").
 		AddTag("source", "kafka").
-		AddTag("source_type", utils.SourceType(int16(req.ServiceType))).
+		AddTag("source_type", utils.GetSourceType(int16(req.ServiceType))).
 		Add("message", string(msg.Value), false, false)
 	pt := point.NewPointV2("bfy", kvs, opts...)
 	pts = append(pts, pt)

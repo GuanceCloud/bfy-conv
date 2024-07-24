@@ -59,7 +59,7 @@ func parseCallTree(msg *sarama.ConsumerMessage) (traces []*point.Point, category
 			AddTag("span_type", "local").
 			AddTag("service_type", "bfy-tspan").
 			AddTag("source", "kafka").
-			AddTag("source_type", utils.SourceType(int16(event.ServiceType)))
+			AddTag("source_type", utils.GetSourceType(int16(event.ServiceType)))
 
 		if event.Method != "" {
 			kvs = kvs.AddTag("http_method", event.Method)

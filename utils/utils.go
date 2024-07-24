@@ -126,7 +126,7 @@ func getTidFromRedis(xid string) string {
 }
 */
 
-func ServiceName(serviceType int16) string {
+/*func ServiceName(serviceType int16) string {
 	if sts, ok := ServiceMaps[serviceType]; ok {
 		return sts[0]
 	}
@@ -138,7 +138,7 @@ func SourceType(serviceType int16) string {
 		return sts[1]
 	}
 	return "Unknown"
-}
+}*/
 
 func GetRandomWithAll() int64 {
 	rand.Seed(time.Now().UnixNano())

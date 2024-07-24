@@ -74,7 +74,6 @@ func tSpanToPoint(tSpan *span.TSpan, xid string) []*point.Point {
 			eventPt.AddTag("service", tSpan.ApplicationName)
 		}
 
-		eventPt.AddTag("source_type", utils.SourceType(event.ServiceType))
 		eventPt.AddTag("service_type", "bfy-tspan")
 		eventPt.AddTag("process_time", time.Now().Format("2006-01-02 15:04:05.000"))
 		if projectVal != "" {
@@ -115,8 +114,8 @@ func tSpanToPoint(tSpan *span.TSpan, xid string) []*point.Point {
 	kvs = kvs.AddTag("agentId", tSpan.GetAgentId()).
 		AddTag(projectKey, projectVal).
 		AddTag("service", tSpan.ApplicationName).
-		AddTag("service_name", utils.ServiceName(tSpan.ServiceType)).
-		AddTag("source_type", utils.SourceType(tSpan.ServiceType)).
+		AddTag("service_name", utils.GetServiceName(tSpan.ServiceType)).
+		AddTag("source_type", utils.GetSourceType(tSpan.ServiceType)).
 		AddTag("transactionId", xid).
 		AddTag("original_type", "Span")
 	if tSpan.ExceptionInfo != nil && tSpan.Err != nil && *tSpan.Err != 0 {

@@ -145,43 +145,10 @@ func ptdecodeEvent(event *span.TSpanEvent) *point.Point {
 	resource := ""
 	if st, ok := utils.ServiceTypeMap[event.ServiceType]; ok {
 		resource = st.Name
-
-		if st.IsQueue {
-			kvs = kvs.MustAddTag("source_type", "message_queue")
-		}
-
-		if st.IsIncludeDestinationID == 1 {
-			kvs = kvs.MustAddTag("source_type", "db")
-		}
-
-		if st.IsRecordStatistics == 1 {
-			kvs = kvs.MustAddTag("source_type", "custom")
-		}
-
-		if st.IsInternalMethod == 1 {
-			kvs = kvs.MustAddTag("source_type", "custom")
-		}
-
-		if st.IsRpcClient == 1 {
-			kvs = kvs.MustAddTag("source_type", "http")
-		}
-
 		if st.IsTerminal == 1 {
-			kvs = kvs.MustAddTag("service", strings.ToLower(st.TypeDesc)).
-				MustAddTag("source_type", "db")
+			kvs = kvs.MustAddTag("service", strings.ToLower(st.TypeDesc))
 		}
-
-		if st.IsUser == 1 {
-			kvs = kvs.MustAddTag("source_type", "custom")
-		}
-
-		if st.IsUnknown == 1 {
-			kvs = kvs.MustAddTag("source_type", "unknown")
-		}
-
-		if kvs.GetTag("source_type") == "" {
-			kvs = kvs.MustAddTag("source_type", "unknown")
-		}
+		kvs = kvs.AddTag("source_type", utils.GetSourceType(event.ServiceType))
 	} else {
 		return nil
 	}
