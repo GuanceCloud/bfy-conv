@@ -7,6 +7,7 @@ import (
 	"github.com/GuanceCloud/bfy-conv/gen-go/span"
 	"github.com/IBM/sarama"
 	"github.com/apache/thrift/lib/go/thrift"
+	"strconv"
 	"time"
 )
 
@@ -29,6 +30,7 @@ func metadata(msg *sarama.ConsumerMessage) {
 				if projectFilter(sqlMeta.AppId) == "" {
 					return
 				}
+
 				sqlSetToCache(sqlMeta)
 			case "api_metadata":
 				transport := &thrift.TMemoryBuffer{
@@ -44,6 +46,7 @@ func metadata(msg *sarama.ConsumerMessage) {
 				if projectFilter(apiMeta.AppId) == "" {
 					return
 				}
+
 				apiSet(apiMeta)
 			}
 		}
@@ -51,32 +54,57 @@ func metadata(msg *sarama.ConsumerMessage) {
 }
 
 func sqlSetToCache(sql *span.TSqlMetaData) {
-	key := fmt.Sprintf("%s-sql-%s", sql.AppId, sql.Hash)
+	//key := fmt.Sprintf("%s-sql-%s", sql.AppId, sql.Hash)
 	val := sql.GetTemplate()
-	RedigoSet(key, val)
+	//RedigoSet(key, val)
+
+	RedigoHSet(sql.AppId, sql.Hash, val)
 }
 
 func sqlGetFromCache(appID, hash string) string {
-	key := fmt.Sprintf("%s-sql-%s", appID, hash)
-	val := RedigoGet(key)
-
+	//key := fmt.Sprintf("%s-sql-%s", appID, hash)
+	//val := RedigoGet(key)
+	val := RedigoHGet(appID, hash)
 	if val == "" {
-		return key // 如果查询不到，将hash返回。
+		if getFromOld { // 如果获取不到，从旧数据中查询。
+			key := fmt.Sprintf("%s-sql-%s", appID, hash)
+			val = RedigoGet(key)
+			// set
+			if val != "" {
+				RedigoHSet(appID, hash, val)
+				return val
+			}
+		}
+		return hash // 如果查询不到，将hash返回。
 	}
 	return val
 }
 
 func apiSet(api *span.TApiMetaData) {
-	key := fmt.Sprintf("%s-%s-%d", api.GetAgentId(), "api", api.GetApiId())
+	//key := fmt.Sprintf("%s-%s-%d", api.GetAgentId(), "api", api.GetApiId())
 	val := fmt.Sprintf("%s line:%d", api.GetApiInfo(), api.GetLine())
-	RedigoSet(key, val)
+	//RedigoSet(key, val)
+	id := strconv.Itoa(int(api.GetApiId()))
+	RedigoHSet(api.GetAgentId(), id, val)
 }
 
 func apiGet(agentId string, apiid int) string {
-	key := fmt.Sprintf("%s-%s-%d", agentId, "api", apiid)
-	val := RedigoGet(key)
+	//key := fmt.Sprintf("%s-%s-%d", agentId, "api", apiid)
+	//val := RedigoGet(key)
+
+	id := strconv.Itoa(apiid)
+	val := RedigoHGet(agentId, id)
+
 	if val == "" {
-		return key
+		if getFromOld {
+			key := fmt.Sprintf("%s-%s-%d", agentId, "api", apiid)
+			val = RedigoGet(key)
+			if val != "" {
+				RedigoHSet(agentId, id, val)
+				return val
+			}
+		}
+		return id // 获取不到返回id
 	}
 	return val
 }
