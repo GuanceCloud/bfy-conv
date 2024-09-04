@@ -153,7 +153,7 @@ func tSpanToPoint(tSpan *span.TSpan, xid string) []*point.Point {
 	}
 	opts := append(point.CommonLoggingOptions(), point.WithTime(ts))
 
-	pts = append(pts, point.NewPointV2("kafka_bfy", kvs, opts...))
+	pts = append(pts, point.NewPointV2("kafka-bfy", kvs, opts...))
 
 	return pts
 }
