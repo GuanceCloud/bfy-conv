@@ -94,11 +94,17 @@ func (jvm *JVM) ToPoint() *point.Point {
 	if jvm == nil {
 		return nil
 	}
+	projectID := projectFilter(jvm.AppID)
+	if projectID == "" {
+		return nil
+	}
+
 	opts := point.DefaultMetricOptions()
 	opts = append(opts, point.WithTime(time.UnixMilli(jvm.TS)))
 	var kvs point.KVs
 	kvs = kvs.AddTag("appid", jvm.AppID).
 		AddTag("appsysid", jvm.AppsysID).
+		AddTag(ProjectKey, projectID).
 		AddTag("agent_id", jvm.AgentID).
 		AddTag("agent_version", jvm.AgentVersion).
 		AddTag("gc_type", jvm.GcType).
@@ -138,6 +144,7 @@ func (jvm *JVM) ToPoint() *point.Point {
 		Add("perm_gen_committed", jvm.PermGenCommitted, false, false).
 		Add("code_cache_committed", jvm.CodeCacheCommitted, false, false).
 		Add("io_idle", jvm.IoIdle, false, false)
+
 	pt := point.NewPointV2("bfy-jvm", kvs, opts...)
 
 	return pt
@@ -153,6 +160,9 @@ func JVMParse(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.C
 	}
 
 	pt := jvm.ToPoint()
+	if pt == nil {
+		return
+	}
 	pt.AddTag("topic", msg.Topic)
 	pts = append(pts, pt)
 	return pts, point.Metric
