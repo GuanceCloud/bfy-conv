@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/GuanceCloud/cliutils/point"
 	"github.com/IBM/sarama"
+	"strconv"
 	"time"
 )
 
@@ -46,48 +47,48 @@ import (
 */
 
 type JVM struct {
-	AppID                  string `json:"appid"`                    // 应用id
-	AppsysID               string `json:"appsysid"`                 // 应用系统id
-	AgentID                string `json:"agentid"`                  // agent id
-	AgentVersion           string `json:"agent_version"`            // agent version
-	TS                     int64  `json:"ts"`                       // 时间 毫秒单位
-	JvmCpu                 int    `json:"jvm_cpu"`                  // jvm cpu占用率
-	SysCpu                 int    `json:"sys_cpu"`                  // 系统cpu占用率
-	GcType                 string `json:"gc_type"`                  // gc 类型
-	FgcCount               int    `json:"fgc_count"`                // full gc 次数
-	FgcTime                int    `json:"fgc_time"`                 // full gc 时间累计值
-	GcOldCount             int    `json:"gc_old_count"`             // gc 次数累计值
-	GcOldTime              int    `json:"gc_old_time"`              // gc 时间累加值
-	GcOldCountNew          int    `json:"gc_old_count_new"`         // 新探针的gc次数累加值
-	GcOldTimeNew           int    `json:"gc_old_time_new"`          // 新探针的gc时间累加值
-	TotalPhysicalMemory    int    `json:"total_physical_memory"`    // 物理内存总量
-	JdbcConnNum            int    `json:"jdbc_conn_num"`            // jdbc连接数
-	ThreadNum              int    `json:"thread_num"`               // 线程数
-	HeapMax                int    `json:"heap_max"`                 // 最大堆内存
-	HeapUsed               int    `json:"heap_used"`                // 堆内存的使用量
-	NonHeapMax             int    `json:"non_heap_max"`             // 最大非堆内存
-	NonHeapUsed            int    `json:"non_heap_used"`            // 非堆内存使用量
-	NonHeapCommitted       int    `json:"non_heap_committed"`       // 已提交的非堆内存
-	NonHeapTotal           int    `json:"non_heap_total"`           // 非堆内存总量
-	NewGenMax              int    `json:"new_gen_max"`              // 最大年轻代内存
-	NewGenUsed             int    `json:"new_gen_used"`             // 年轻代使用量
-	NewGenCommitted        int    `json:"new_gen_committed"`        // 已提交的年轻代内存
-	OldGenMax              int    `json:"old_gen_max"`              // 最大老年代内存
-	OldGenUsed             int    `json:"old_gen_used"`             // 老年代使用量
-	OldGenCommitted        int    `json:"old_gen_committed"`        // 已提交的老年代内存
-	SurvivorSpaceMax       int    `json:"survivor_space_max"`       // 最大幸存区内存
-	SurvivorSpaceUsed      int    `json:"survivor_space_used"`      // 幸存区内存使用量
-	SurvivorSpaceCommitted int    `json:"survivor_space_committed"` // 幸存区内存使用量
-	MetaspaceMax           int    `json:"metaspace_max"`            // 最大元空间的值
-	MetaspaceUsed          int    `json:"metaspace_used"`           // 已用的元空间的值
-	MetaspaceCommitted     int    `json:"metaspace_committed"`      // 已提交的元空间的值
-	MetaspaceTotal         int    `json:"metaspace_total"`          // 元空间的总量
-	PermGenMax             int    `json:"perm_gen_max"`             // 最大永久代内存
-	PermGenUsed            int    `json:"perm_gen_used"`            // 已使用永久代内存
-	PermGenUsage           int    `json:"perm_gen_usage"`           // 可用的永久代内存
-	PermGenCommitted       int    `json:"perm_gen_committed"`       // 已提交的永久代内存
-	CodeCacheCommitted     int    `json:"code_cache_committed"`     // 已提交的代码缓存区内存
-	IoIdle                 int    `json:"io_idle"`                  // io空闲时间百分比
+	AppID                  string  `json:"appid"`                    // 应用id
+	AppsysID               string  `json:"appsysid"`                 // 应用系统id
+	AgentID                string  `json:"agentid"`                  // agent id
+	AgentVersion           int     `json:"agent_version"`            // agent version
+	TS                     int64   `json:"ts"`                       // 时间 毫秒单位
+	JvmCpu                 int     `json:"jvm_cpu"`                  // jvm cpu占用率
+	SysCpu                 int     `json:"sys_cpu"`                  // 系统cpu占用率
+	GcType                 string  `json:"gc_type"`                  // gc 类型
+	FgcCount               int     `json:"fgc_count"`                // full gc 次数
+	FgcTime                int     `json:"fgc_time"`                 // full gc 时间累计值
+	GcOldCount             int     `json:"gc_old_count"`             // gc 次数累计值
+	GcOldTime              int     `json:"gc_old_time"`              // gc 时间累加值
+	GcOldCountNew          int     `json:"gc_old_count_new"`         // 新探针的gc次数累加值
+	GcOldTimeNew           int     `json:"gc_old_time_new"`          // 新探针的gc时间累加值
+	TotalPhysicalMemory    int     `json:"total_physical_memory"`    // 物理内存总量
+	JdbcConnNum            int     `json:"jdbc_conn_num"`            // jdbc连接数
+	ThreadNum              int     `json:"thread_num"`               // 线程数
+	HeapMax                int     `json:"heap_max"`                 // 最大堆内存
+	HeapUsed               int     `json:"heap_used"`                // 堆内存的使用量
+	NonHeapMax             int     `json:"non_heap_max"`             // 最大非堆内存
+	NonHeapUsed            int     `json:"non_heap_used"`            // 非堆内存使用量
+	NonHeapCommitted       int     `json:"non_heap_committed"`       // 已提交的非堆内存
+	NonHeapTotal           int     `json:"non_heap_total"`           // 非堆内存总量
+	NewGenMax              int     `json:"new_gen_max"`              // 最大年轻代内存
+	NewGenUsed             int     `json:"new_gen_used"`             // 年轻代使用量
+	NewGenCommitted        int     `json:"new_gen_committed"`        // 已提交的年轻代内存
+	OldGenMax              int     `json:"old_gen_max"`              // 最大老年代内存
+	OldGenUsed             int     `json:"old_gen_used"`             // 老年代使用量
+	OldGenCommitted        int     `json:"old_gen_committed"`        // 已提交的老年代内存
+	SurvivorSpaceMax       int     `json:"survivor_space_max"`       // 最大幸存区内存
+	SurvivorSpaceUsed      int     `json:"survivor_space_used"`      // 幸存区内存使用量
+	SurvivorSpaceCommitted int     `json:"survivor_space_committed"` // 幸存区内存使用量
+	MetaspaceMax           int     `json:"metaspace_max"`            // 最大元空间的值
+	MetaspaceUsed          int     `json:"metaspace_used"`           // 已用的元空间的值
+	MetaspaceCommitted     int     `json:"metaspace_committed"`      // 已提交的元空间的值
+	MetaspaceTotal         int     `json:"metaspace_total"`          // 元空间的总量
+	PermGenMax             int     `json:"perm_gen_max"`             // 最大永久代内存
+	PermGenUsed            int     `json:"perm_gen_used"`            // 已使用永久代内存
+	PermGenUsage           float64 `json:"perm_gen_usage"`           // 可用的永久代内存
+	PermGenCommitted       int     `json:"perm_gen_committed"`       // 已提交的永久代内存
+	CodeCacheCommitted     int     `json:"code_cache_committed"`     // 已提交的代码缓存区内存
+	IoIdle                 float64 `json:"io_idle"`                  // io空闲时间百分比
 }
 
 func (jvm *JVM) ToPoint() *point.Point {
@@ -106,7 +107,7 @@ func (jvm *JVM) ToPoint() *point.Point {
 		AddTag("appsysid", jvm.AppsysID).
 		AddTag(ProjectKey, projectID).
 		AddTag("agent_id", jvm.AgentID).
-		AddTag("agent_version", jvm.AgentVersion).
+		AddTag("agent_version", strconv.Itoa(jvm.AgentVersion)).
 		AddTag("gc_type", jvm.GcType).
 		Add("jvm_cpu", jvm.JvmCpu, false, false).
 		Add("sys_cpu", jvm.SysCpu, false, false).
