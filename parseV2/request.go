@@ -36,6 +36,7 @@ type RequestData struct {
 	ModelID         string  `json:"modelid,omitempty"`           // 模型id
 	URL             string  `json:"url,omitempty"`               // 请求url 请求参数
 	ServiceType     int     `json:"service_type,omitempty"`      // 服务类型 从serviceType表中取值
+	APPServiceType  int     `json:"app_service_type,omitempty"`  // 应用类型 从serviceType表中取值
 	AppID           string  `json:"appid,omitempty"`             // 应用id
 	AppSysID        string  `json:"appsysid,omitempty"`          // 应用系统id
 	PAgentID        string  `json:"pagent_id,omitempty"`         // 上级探针id
@@ -69,6 +70,7 @@ type RequestData struct {
 	OSVersion       string  `json:"os_version,omitempty"`        // 系统版本
 	OSVersionNumber int     `json:"os_version_number,omitempty"` // 系统版本号
 	IsOtel          bool    `json:"is_otel,omitempty"`           // 是否ot协议
+	EventCID        string  `json:"event_cid,omitempty"`         // 是否ot协议
 }
 
 func request(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.Category) {

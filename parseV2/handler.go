@@ -72,7 +72,7 @@ func projectFilter(appId string) (projectID string) {
 			}
 		}
 		if !filter {
-			log.Debugf("del appId %s", appId)
+			log.Debugf("can not find appId: %s in filters", appId)
 			return
 		}
 	}
