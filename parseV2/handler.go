@@ -21,6 +21,7 @@ func HandlerTopic(msg *sarama.ConsumerMessage) (pts []*point.Point, category poi
 	case "dwd_request":
 		return request(msg)
 	case "dwd_jvmstats":
+		log.Infof("dwd_jvmstats topic")
 		return JVMParse(msg)
 	case "dwd_callevents":
 		return parseCallTree(msg)

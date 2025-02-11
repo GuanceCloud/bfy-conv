@@ -97,6 +97,7 @@ func (jvm *JVM) ToPoint() *point.Point {
 	}
 	projectID := projectFilter(jvm.AppID)
 	if projectID == "" {
+		log.Warnf("filter: can find projectID for %s", jvm.AppID)
 		return nil
 	}
 
@@ -162,6 +163,7 @@ func JVMParse(msg *sarama.ConsumerMessage) (pts []*point.Point, category point.C
 
 	pt := jvm.ToPoint()
 	if pt == nil {
+		log.Warnf("point is nil")
 		return
 	}
 	pt.AddTag("topic", msg.Topic)
