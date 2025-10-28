@@ -54,11 +54,18 @@ func RedigoGet(key string) string {
 	}
 	if pool != nil {
 		val, err := pool.Do(context.Background(), "GET", key).Result()
-		if err == redis.Nil {
-			log.Debugf("can not get %s form redis ,err=%v ", key, err)
+		if err != nil || val == nil {
+			if err == redis.Nil {
+				log.Debugf("can not get %s form redis ,err=%v ", key, err)
+			} else {
+				log.Errorf("can not get %s form redis ,err=%v ", key, err)
+			}
 			return va
 		}
-		return val.(string)
+		str, ok := val.(string)
+		if ok {
+			return str
+		}
 	}
 
 	return va
@@ -81,10 +88,13 @@ func RedigoHGet(key, name string) string {
 	}
 	if pool != nil {
 		val, err := pool.HGet(context.Background(), key, name).Result()
-		if err == redis.Nil {
-			log.Debugf("can not get %s form redis ,err=%v ", key, err)
+		if err != nil {
+			if err == redis.Nil {
+				log.Debugf("can not get %s form redis ,err=%v ", key, err)
+			}
 			return va
 		}
+
 		return val
 	}
 	return va
